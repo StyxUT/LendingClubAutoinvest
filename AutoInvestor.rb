@@ -243,8 +243,8 @@ class Loans
 	def report_order_response(response)
 		unless response.nil?
 				response = JSON.parse(response)
-				File.open(File.expand_path(configatron.logging.order_response_log), 'a') { |file| file.write("#{Time.now.strftime("%H:%M:%S %d/%m/%Y")}\n#{response}\n\n") }
 			begin
+				File.open(File.expand_path(configatron.logging.order_response_log), 'a') { |file| file.write("#{Time.now.strftime("%H:%M:%S %d/%m/%Y")}\n#{response}\n\n") }
 				invested = response.values[1].select { |o| o["executionStatus"].include? 'ORDER_FULFILLED' }
 				not_in_funding = response.values[1].select { |o| o["executionStatus"].include? 'NOT_AN_IN_FUNDING_LOAN' }
 				PB.set_subject("#{invested.size.to_i} of #{purchasable_loan_count}/#{[fundable_loan_count.to_i, loan_list.size].max}")
