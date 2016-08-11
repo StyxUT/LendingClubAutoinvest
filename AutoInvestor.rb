@@ -17,10 +17,10 @@ require 'byebug'
 #  		Add instruction for using clockworkd and clockwork
 # 		(recomend using foreman/upstart)
 #  Implement Unit Tests
-#  Identify and handle purchases when loans are released late 
-# 		Removes need to call purchase loans multiple times
 #  Improve order response messaging
-# 		Currently only
+# 		Currently only supports successful purchases, and no longer in funding
+#  Add support to allow investing different amounts depending on account factors
+#  		E.g. If available funds is larger than $300  and numebr of owned notes is > 500 invest $50 per note instead of $25
 
 
 ###############################
@@ -28,6 +28,7 @@ require 'byebug'
 #  	Rotate logs using logrotate
 #		brew install logrotate (OS X only)
 #		mkdir /var/log/lending_club_autoinvestor/
+# 			ensure executing process has write access to directory
 #		add below to "/etc/logrotate.d/lending_club_autoinvestor" file:
 #			/var/log/lending_club_autoinvestor/*.log {
 #		        weekly
@@ -40,9 +41,10 @@ require 'byebug'
 #		modify configuration as needed (man logrotate)
 ###############################
 
+
 ###############################
 #  	Notes:
-# 	It's intended for this script to be scheduled to run each time LendingClub releases new loans. 
+# 	It's intended for this script to be scheduled to run about one minute prior to the time LendingClub releases new loans. 
 # 	Currently LendingClub releases new loans at 7 AM, 11 AM, 3 PM and 7 PM (MST) each day.
 #   This is idealy handled by the clock.rb/clockworkd/colckworker.sh setup  
 ###############################
@@ -50,15 +52,40 @@ require 'byebug'
 $debug = false 
 $verbose = true
 
-
 class Loans
 	TERMS = Enum.new(:TERMS, :months60 => 60, :months36 => 36)
 	PURPOSES = Enum.new(:PURPOSES, :credit_card_refinancing => 'credit_card_refinance', :consolidate => 'debt_consolidation', :other => 'other', :credit_card => 'credit_card', :home_improvement => 'home_improvement', :small_business => 'small_business')
 
+	# LendingClub server time and local server time may not always be synced or loans may be release a bit early or late.  
+	# Check for the release of new loans "max_checks" times and attempt to purchase loans when/if loans are released.
+	def check_for_release
+		check_count = 0
+		max_checks = configatron.lending_club.max_checks
+		starting_loan_count = get_available_loans.values[1].size
+		puts "starting_loan_count: #{starting_loan_count}"
+				
+		while check_count < max_checks
+			check_count = check_count + 1
+			puts "check_for_release #{check_count}"
+			pre_filtered_loan_count = get_available_loans.values[1].size
+			if starting_loan_count < pre_filtered_loan_count
+				puts "Purchasing loans."
+				PB.add_line("Pre-Filtered Loan Count:  #{pre_filtered_loan_count}")
+				return true
+			end
+			puts "Pre-Filtered Loan Count:  #{pre_filtered_loan_count}"
+			sleep(2) # wait before checking again
+		end
+		PB.add_line("After #{check_count} checks the number of available loans remained at or below #{starting_loan_count}.")
+		return false
+	end
+
 	def purchase_loans
-		filter_loans
-		remove_owned_loans(owned_loans)
-		place_order(build_order_list)
+		if check_for_release
+			filter_loans
+			remove_owned_loans(owned_loans)
+			place_order(build_order_list)
+		end
 		PB.send_message # send PushBullet message
 	end
 
@@ -80,7 +107,6 @@ class Loans
 			puts "Pre-Filtered Loan Count (from file):  #{result.values[1].size}"
 		else
 			begin
-	
 				puts "Pulling fresh Loans data."
 			 	puts "method_url: #{__method__} -> #{method_url}"
 				response = RestClient.get( method_url, 
@@ -89,7 +115,6 @@ class Loans
 				 		"Content-Type" => configatron.lending_club.content_type
 					)
 				result = JSON.parse(response)
-				PB.add_line("Pre-Filtered Loan Count:  #{result.values[1].size}")
 			rescue
 				PB.add_line("Failure in: #{__method__}\nUnable to get a list of available loans.")
 			end
@@ -113,7 +138,7 @@ class Loans
 				o["intRate"].to_f > 16.0 &&
 				o["dti"].to_f <= 20.00 &&
 				o["delinq2Yrs"].to_i < 4 &&
-				( 	# exclude loans where the instalment amount is more than 10% of the borrower's monthly income
+				( 	# exclude loans where the monthly instalment amount is more than 10% of the borrower's monthly income
 					o["installment"].to_f / (o["annualInc"].to_f / 12) < 0.1 
 				) &&
 				(
@@ -125,7 +150,8 @@ class Loans
 			if $verbose
 				puts "filter_loans.@loan_list.size (after filter): #{loan_list.size}"
 			end
-			# sort the loans with the highest interst rate to the front  --this is so they will be purchased first when there aren't enough funds to purchase all loans
+			# sort the loans with the highest interst rate to the front  
+			# --this is so hightst interest rate loans will be purchased first when there aren't enough funds to purchase all desireable loans
 			@loan_list.sort! { |a,b| b["intRate"].to_f <=> a["intRate"].to_i }
 		end
 	end
@@ -328,6 +354,8 @@ class PushBullet
 	end
 
 	def send_message
+		add_line("Message sent at #{Time.now.strftime("%H:%M:%S %m/%d/%Y")}")
+
 		if $verbose
 	 		puts "PushBullet Message:"
 	 		puts view_message
@@ -353,7 +381,7 @@ class PushBullet
 
 end
 
-
+# For testing outside of clockwork.d/clock.rb
 PB = PushBullet.new
 A = Account.new
 

@@ -12,16 +12,19 @@ module Clockwork
 	end
 end
 
-#LeningClub releases new loas at these times (MT) each day
-Clockwork.every(1.days, 'AutoInvestor.rb', :at => ['7:00', '11:00', '15:00', '19:00']){
+#LeningClub releases new loans one minute after these times (MT) each day
+Clockwork.every(1.days, 'AutoInvestor.rb', :at => ['6:59', '10:59', '14:59', '18:59']){
 	
 	PB = PushBullet.new
 	A = Account.new
+	Loans.new.purchase_loans
+	PB = nil
+	A = nil
 
+	# run again to try to pick up loans that may have been "no longer in funding" but have become available again
+	PB = PushBullet.new
+	A = Account.new
 	Loans.new.purchase_loans
-	sleep(3)
-	Loans.new.purchase_loans
-	sleep(5)
-	Loans.new.purchase_loans
-
+	PB = nil
+	A = nil
 }
