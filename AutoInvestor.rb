@@ -46,8 +46,11 @@ require 'byebug'
 #  	Notes:
 # 	It's intended for this script to be scheduled to run about one minute prior to the time LendingClub releases new loans. 
 # 	Currently LendingClub releases new loans at 7 AM, 11 AM, 3 PM and 7 PM (MST) each day.
-#   This is idealy handled by the clock.rb/clockworkd/colckworker.sh setup  
+#   This is ideally handled by the clock.rb/clockworkd/colckworker.sh setup 
 ###############################
+
+# to start: $ sudo bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/clock.rb
+# to stop: $ sudo bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/clock.rb
 
 $debug = false 
 $verbose = true
@@ -55,30 +58,6 @@ $verbose = true
 class Loans
 	TERMS = Enum.new(:TERMS, :months60 => 60, :months36 => 36)
 	PURPOSES = Enum.new(:PURPOSES, :credit_card_refinancing => 'credit_card_refinance', :consolidate => 'debt_consolidation', :other => 'other', :credit_card => 'credit_card', :home_improvement => 'home_improvement', :small_business => 'small_business')
-
-	# LendingClub server time and local server time may not always be synced or loans may be release a bit early or late.  
-	# Check for the release of new loans "max_checks" times and attempt to purchase loans when/if loans are released.
-	def check_for_release
-		check_count = 0
-		max_checks = configatron.lending_club.max_checks
-		starting_loan_count = get_available_loans.values[1].size
-		puts "starting_loan_count: #{starting_loan_count}"
-				
-		while check_count < max_checks
-			check_count = check_count + 1
-			puts "check_for_release #{check_count}"
-			pre_filtered_loan_count = get_available_loans.values[1].size
-			if starting_loan_count < pre_filtered_loan_count
-				puts "Purchasing loans."
-				PB.add_line("Pre-Filtered Loan Count:  #{pre_filtered_loan_count}")
-				return true
-			end
-			puts "Pre-Filtered Loan Count:  #{pre_filtered_loan_count}"
-			sleep(2) # wait before checking again
-		end
-		PB.add_line("After #{check_count} checks the number of available loans remained at or below #{starting_loan_count}.")
-		return false
-	end
 
 	def purchase_loans
 		if check_for_release
@@ -89,10 +68,35 @@ class Loans
 		PB.send_message # send PushBullet message
 	end
 
+	# LendingClub server time and local server time may not always be synced or loans may be release a bit early or late.  
+	# Check for the release of new loans "max_checks" times and attempt to purchase loans when/if loans are released.
+	def check_for_release
+	 	check_count = 0
+	 	max_checks = configatron.lending_club.max_checks
+	 	starting_loan_list_size = loan_list.values[1].size
+	 	puts "starting_loan_list_size: #{starting_loan_list_size}"
+				
+	 	while check_count < max_checks
+	 		check_count = check_count + 1
+	 		puts "check_for_release #{check_count}"
+	 		current_loan_list_size = loan_list.values[1].size
+	 		puts "current_loan_list_size: #{current_loan_list_size}"
+	 		if current_loan_list_size > starting_loan_list_size 
+	 			puts "Loans have been released. Preparing to purchasing loans."
+	 			PB.add_line("Pre-Filtered Loan Count:  #{current_loan_list_size}")
+	 			return true
+	 		end
+	 		puts "Pre-Filtered Loan Count:  #{current_loan_list_size}"
+	 		sleep(2) # wait before checking again
+	 	end
+	 	PB.add_line("After #{check_count} checks the number of available loans remained at or below #{starting_loan_list_size}.")
+	 	return false
+	 end
+ 
 	def loan_list
-		@loan_list ||= get_available_loans
+		@loan_list = get_available_loans
 		if $verbose
-			puts "@loan_list.size: #{@loan_list.size}"
+			puts "@loan_list loan count: #{@loan_list.values[1].size}"
 		end
 		@loan_list # this seems to be necessary, not sure why
 	end
@@ -125,10 +129,10 @@ class Loans
 	def filter_loans
 		if $verbose
 			puts "Filtering loan list."
-			puts "filter_loans.Pre-Filtered Loan Count (before filter):  #{loan_list.values[1].size}"
+			# puts "filter_loans.Pre-Filtered Loan Count (before filter):  #{loan_list.values[1].size}"
 		end
-		unless loan_list.nil?
-			@loan_list = loan_list.values[1].select do |o|
+		unless @loan_list.nil?
+			@filtered_loan_list = @loan_list.values[1].select do |o|
 				o["term"].to_i == TERMS.months36 && 
 				o["annualInc"].to_f / 12 > 3000 &&
 				o["empLength"].to_i > 23 && #
@@ -148,27 +152,27 @@ class Loans
 				)
 			end
 			if $verbose
-				puts "filter_loans.@loan_list.size (after filter): #{loan_list.size}"
+				puts "filter_loans.@filtered_loan_list.size (after filter): #{@filtered_loan_list.size}"
 			end
 			# sort the loans with the highest interst rate to the front  
 			# --this is so hightst interest rate loans will be purchased first when there aren't enough funds to purchase all desireable loans
-			@loan_list.sort! { |a,b| b["intRate"].to_f <=> a["intRate"].to_i }
+			@filtered_loan_list.sort! { |a,b| b["intRate"].to_f <=> a["intRate"].to_f }
 		end
 	end
 
 	def remove_owned_loans(owned_loans)
 		if $verbose
 			puts "Removing already owned loans."
-			puts "remove_owned_loans.loan_list.size (before removal) #{loan_list.size}"
+			puts "remove_owned_loans.@filtered_loan_list.size (before removal) #{@filtered_loan_list.size}"
 		end
 		unless loan_list.nil?
 			# extract loanId's from a hash of already owned loans and remove those loans from the list of filtered loans
 			a = []
 			owned_loans.values[0].map {|o| a << o["loanId"]}
-			a.each { |i| @loan_list.delete_if {|key, value| key["id"] == i} }
+			a.each { |i| @filtered_loan_list.delete_if {|key, value| key["id"] == i} }
 		end
 		if $verbose
-			puts "remove_owned_loans.loan_list.size: #{loan_list.size}"
+			puts "remove_owned_loans.@filtered_loan_list.size: #{@filtered_loan_list.size}"
 		end
 	end
 	
@@ -195,7 +199,7 @@ class Loans
 	end
 	
 	def purchasable_loan_count
-		@purchasable_loan_count ||= [fundable_loan_count, loan_list.size].min
+		@purchasable_loan_count ||= [fundable_loan_count, @filtered_loan_list.size].min
 		if $verbose
 			puts "@purchasable_loan_count: #{@purchasable_loan_count}"
 		end
@@ -207,8 +211,7 @@ class Loans
 
 		if purchasable_loan_count > 0
 			order_list = Hash["aid" => configatron.lending_club.account, "orders" => 
-				loan_list.first(purchasable_loan_count).map do |o|
-
+				@filtered_loan_list.first(purchasable_loan_count).map do |o|
 					Hash[
 							'loanId' => o["id"].to_i,
 						 	'requestedAmount' => configatron.lending_club.investment_amount, 
@@ -285,7 +288,7 @@ class Loans
 				PB.add_line("Failure in: #{__method__}\nUnable to report on order response.")
 			end
 		else
-			PB.set_subject "0 of #{purchasable_loan_count}/#{[fundable_loan_count.to_i, loan_list.size].max}"
+			PB.set_subject "0 of #{purchasable_loan_count}/#{[fundable_loan_count.to_i, @loan_list.size].max}"
 		end
 	end
 
@@ -382,7 +385,7 @@ class PushBullet
 end
 
 # For testing outside of clockwork.d/clock.rb
-PB = PushBullet.new
-A = Account.new
+# PB = PushBullet.new
+# A = Account.new
 
-Loans.new.purchase_loans
+# Loans.new.purchase_loans
