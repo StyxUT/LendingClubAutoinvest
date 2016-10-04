@@ -1,5 +1,4 @@
 #!/usr/bin/ruby
-
 require_relative 'configatron.rb'
 require 'rubygems'
 require 'bundler/setup'
@@ -8,7 +7,8 @@ require 'rest-client'
 require 'json'
 require 'pp'
 require 'washbullet' #PushBullet
-require 'byebug'
+
+#require 'byebug'
 
 
 #  TODO:
@@ -29,6 +29,7 @@ require 'byebug'
 #		brew install logrotate (OS X only)
 #		mkdir /var/log/lending_club_autoinvestor/
 # 			ensure executing process has write access to directory
+#				sudo chown -R <user_name> /var/log/lending_club_autoinvestor/
 #		add below to "/etc/logrotate.d/lending_club_autoinvestor" file:
 #			/var/log/lending_club_autoinvestor/*.log {
 #		        weekly
@@ -49,8 +50,8 @@ require 'byebug'
 #   This is ideally handled by the clock.rb/clockworkd/colckworker.sh setup 
 ###############################
 
-# to start: $ sudo bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/clock.rb
-# to stop: $ sudo bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/clock.rb
+# to start: $ bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/clock.rb
+# to stop: $ bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/clock.rb
 
 $debug = false 
 $verbose = true
@@ -60,12 +61,45 @@ class Loans
 	PURPOSES = Enum.new(:PURPOSES, :credit_card_refinancing => 'credit_card_refinance', :consolidate => 'debt_consolidation', :other => 'other', :credit_card => 'credit_card', :home_improvement => 'home_improvement', :small_business => 'small_business')
 
 	def purchase_loans
-		if check_for_release
-			filter_loans
-			remove_owned_loans(owned_loans)
-			place_order(build_order_list)
+		get_default_predictions
+		# if check_for_release
+		# 	filter_loans
+		# 	remove_owned_loans(owned_loans)
+		# 	place_order(build_order_list)
+		# end
+		# PB.send_message # send PushBullet message
+	end
+
+
+	def get_default_predictions
+		method_url = "#{configatron.default_predictor.base_url}:#{configatron.default_predictor.port}/predict"
+		method_url = "#{configatron.default_predictor.base_url}:#{configatron.default_predictor.port}/version"
+
+		if $verbose
+			puts "Getting default predictions."
+			puts "method_url: #{__method__} -> #{method_url}"
 		end
-		PB.send_message # send PushBullet message
+		if $debug
+			puts "Pulling test loans for default predictor (from test file): '#{configatron.default_predictor.test_file}'"
+			response = RestClient.post( method_url, File.read(File.expand_path("../" + configatron.default_predictor.test_file, __FILE__)), 
+		  	 		"Accept" => configatron.default_predictor.content_type,
+		  	 		"Content-Type" => configatron.default_predictor.content_type
+		  		)
+		else
+			begin
+				response = RestClient.post( method_url, get_available_loans, 
+				  		"Accept" => configatron.default_predictor.content_type,
+				  		"Content-Type" => configatron.default_predictor.content_type
+				 	)
+			rescue
+				PB.add_line("Failure in: #{__method__}\nUnable to get a default predictions.")
+			end
+		end
+
+		puts JSON.parse(response).class
+		puts response.class
+		# puts JSON.parse(response).class
+		# filter_on_default_prob(response)
 	end
 
 	# LendingClub server time and local server time may not always be synced or loans may be release a bit early or late.  
@@ -75,7 +109,6 @@ class Loans
 	 	max_checks = configatron.lending_club.max_checks
 	 	starting_loan_list_size = loan_list.values[1].size
 	 	puts "starting_loan_list_size: #{starting_loan_list_size}"
-				
 	 	while check_count < max_checks
 	 		check_count = check_count + 1
 	 		puts "check_for_release #{check_count}"
@@ -87,14 +120,14 @@ class Loans
 	 			return true
 	 		end
 	 		puts "Pre-Filtered Loan Count:  #{current_loan_list_size}"
-	 		sleep(2) # wait before checking again
+	 		sleep(1) # wait before checking again
 	 	end
 	 	PB.add_line("After #{check_count} checks the number of available loans remained at or below #{starting_loan_list_size}.")
 	 	return false
 	 end
  
 	def loan_list
-		@loan_list = get_available_loans
+		@loan_list = JSON.parse(get_available_loans)
 		if $verbose
 			puts "@loan_list loan count: #{@loan_list.values[1].size}"
 		end
@@ -104,11 +137,9 @@ class Loans
 	def get_available_loans
 		method_url = "#{configatron.lending_club.base_url}/#{configatron.lending_club.api_version}/loans/listing" #only show loans released in the most recent release (add "?showAll=true" to see all loans)
 		if $debug
-			puts "Pulling available loans from file: '#{configatron.testing_files.available_loans}'"
+			puts "Pulling available loans (from test file): '#{configatron.testing_files.available_loans}'"
 			response = File.read(File.expand_path("../" + configatron.testing_files.available_loans, __FILE__))
-			JSON.parse(response)
-			result = JSON.parse(response)
-			puts "Pre-Filtered Loan Count (from file):  #{result.values[1].size}"
+			puts "Pre-Filtered Loan Count (from test file):  #{result.values[1].size}"
 		else
 			begin
 				puts "Pulling fresh Loans data."
@@ -118,13 +149,36 @@ class Loans
 				 		"Accept" => configatron.lending_club.content_type,
 				 		"Content-Type" => configatron.lending_club.content_type
 					)
-				result = JSON.parse(response)
+				puts "Pre-Filtered Loan Count:  #{result.values[1].size}"
 			rescue
 				PB.add_line("Failure in: #{__method__}\nUnable to get a list of available loans.")
 			end
 		end
-		return result 
+		# puts JSON.parse(response).class
+		return response
 	end	 
+
+	def filter_on_default_prob(default_probs)
+		unless default_probs.nil?
+			default_probabilities = JSON.parse(default_probs)
+			puts default_probabilities.class
+			# # extract loanId's from a hash of already owned loans and remove those loans from the list of filtered loans
+			# a = []
+			# default_prob.to_json.values[0].map {|o| a << o["loanId"]}
+			# a.each { |i| @loan_list.delete_if {|key, value| key["memberId"] == i} }
+			
+			# puts default_probs
+
+			 # default_probs.each do |prob|
+			 # 	p prob
+			 # end
+
+			 # puts "end"
+			# puts default_probs.class
+			# default_probs.delete_if {|k, v| v > 0.01} 
+
+		end
+	end
 
 	def filter_loans
 		if $verbose
@@ -168,7 +222,7 @@ class Loans
 		unless loan_list.nil?
 			# extract loanId's from a hash of already owned loans and remove those loans from the list of filtered loans
 			a = []
-			owned_loans.values[0].map {|o| a << o["loanId"]}
+			owned_loans.to_json.values[0].map {|o| a << o["loanId"]}
 			a.each { |i| @filtered_loan_list.delete_if {|key, value| key["id"] == i} }
 		end
 		if $verbose
@@ -190,12 +244,12 @@ class Loans
 			 		"Content-Type" => configatron.lending_club.content_type
 				)
 
-			result = JSON.parse(response)
+			# result = JSON.parse(response)  #disabled for testing and to_json was added to remove_owened_loans
 		rescue
 			PB.add_line("Failure in: #{__method__}\nUnable to get the list of already owned loans.")
 		end
 		
-		return result
+		return response
 	end
 	
 	def purchasable_loan_count
@@ -385,7 +439,7 @@ class PushBullet
 end
 
 # For testing outside of clockwork.d/clock.rb
-# PB = PushBullet.new
-# A = Account.new
+ PB = PushBullet.new
+ A = Account.new
 
-# Loans.new.purchase_loans
+ Loans.new.purchase_loans

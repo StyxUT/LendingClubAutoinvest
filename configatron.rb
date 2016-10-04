@@ -4,8 +4,8 @@ configatron.configure_from_hash(
     lending_club:
     {
             authorization: '',  #Lending Club API key
-            account: 123456789,       # Lending Club account number
-            portfolio_id: 123456789,         # id of the portfolio to add purchased notes to
+            account: ,       # Lending Club account number
+            portfolio_id: ,         # id of the portfolio to add purchased notes to
             investment_amount: 25,          # amount to invest per loan ($25 minimum)
             max_checks: 35,     # number of times to check for newly released loans
 
@@ -13,10 +13,18 @@ configatron.configure_from_hash(
             base_url: 'https://api.lendingclub.com/api/investor',
             content_type: 'application/json'
     },
+    default_predictor:
+    {
+            base_url: '',
+            content_type: 'application/json',
+            port: '',
+            max_default_prob: '0.02',
+            test_file: 'Test/loanlist-example.json'
+    },
     push_bullet:
     {
             api_key: '',
-            device_id: '' 
+            device_id: '' # iphone 6S Plus
     },
     logging:
     {
