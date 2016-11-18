@@ -20,7 +20,7 @@ require 'washbullet' #PushBullet
 #  Improve order response messaging
 # 		Currently only supports successful purchases, and no longer in funding
 #  Add support to allow investing different amounts depending on account factors
-#  		E.g. If available funds is larger than $300  and numebr of owned notes is > 500 invest $50 per note instead of $25
+#  		E.g. If available funds is larger than $300 and number of owned notes is > 500 invest $50 per note instead of $25
 
 
 ###############################
@@ -55,51 +55,79 @@ require 'washbullet' #PushBullet
 
 $debug = false 
 $verbose = true
+$pushbullet = true
 
 class Loans
 	TERMS = Enum.new(:TERMS, :months60 => 60, :months36 => 36)
 	PURPOSES = Enum.new(:PURPOSES, :credit_card_refinancing => 'credit_card_refinance', :consolidate => 'debt_consolidation', :other => 'other', :credit_card => 'credit_card', :home_improvement => 'home_improvement', :small_business => 'small_business')
 
 	def purchase_loans
-		get_default_predictions
-		# if check_for_release
-		# 	filter_loans
-		# 	remove_owned_loans(owned_loans)
-		# 	place_order(build_order_list)
-		# end
-		# PB.send_message # send PushBullet message
+		# preload relatively static data in order to reduce processing time once loans have been released
+		A.available_cash
+		owned_loans_list
+
+		if check_for_release
+		 	apply_filtering_criteria
+		 	place_order(build_order_list)
+		end
+
+		PB.send_message # send PushBullet message
 	end
 
+	def apply_filtering_criteria
+		filtered_loan_list #needed in order to populate @filtered_loan_list
+		filter_on_default_probability
+		filter_on_additional_criteria
+		filter_on_owned_loans
+	end
 
-	def get_default_predictions
-		method_url = "#{configatron.default_predictor.base_url}:#{configatron.default_predictor.port}/predict"
-		method_url = "#{configatron.default_predictor.base_url}:#{configatron.default_predictor.port}/version"
-
+	#forces refresh of @loan_list with each call
+	def fresh_loan_list
+		@loan_list = JSON.parse(get_available_loans)
 		if $verbose
-			puts "Getting default predictions."
-			puts "method_url: #{__method__} -> #{method_url}"
+			puts "@loan_list.values[1].size: #{@loan_list.values[1].size}"
 		end
-		if $debug
-			puts "Pulling test loans for default predictor (from test file): '#{configatron.default_predictor.test_file}'"
-			response = RestClient.post( method_url, File.read(File.expand_path("../" + configatron.default_predictor.test_file, __FILE__)), 
-		  	 		"Accept" => configatron.default_predictor.content_type,
-		  	 		"Content-Type" => configatron.default_predictor.content_type
-		  		)
-		else
-			begin
-				response = RestClient.post( method_url, get_available_loans, 
-				  		"Accept" => configatron.default_predictor.content_type,
-				  		"Content-Type" => configatron.default_predictor.content_type
-				 	)
-			rescue
-				PB.add_line("Failure in: #{__method__}\nUnable to get a default predictions.")
-			end
-		end
+		@loan_list # make @loan_list the return value
+	end
 
-		puts JSON.parse(response).class
-		puts response.class
-		# puts JSON.parse(response).class
-		# filter_on_default_prob(response)
+	def loan_list
+		@loan_list ||= fresh_loan_list
+		if $verbose
+			puts "@loan_list.values[1].size: #{@loan_list.values[1].size}"
+		end
+		@loan_list # make @loan_list the return value
+	end
+
+	def filtered_loan_list
+		@filtered_loan_list ||= loan_list
+		if $verbose
+			#puts "@filtered_loan_list: #{@filtered_loan_list}"
+		end
+		@filtered_loan_list # make @filtered_loan_list the return value
+	end
+
+	def owned_loans_list
+		@owned_loans_list ||= JSON.parse(get_owned_loans_list)
+		if $verbose
+			#puts "@owned_loans_list: #{@owned_loans_list}"
+		end
+		@owned_loans_list # make @owned_loans_list the return value
+	end
+
+	def fundable_loan_count
+		@fundable_loan_count ||= A.available_cash / configatron.lending_club.investment_amount
+		if $verbose
+			puts "@fundable_loan_count: #{@fundable_loan_count}"
+		end
+		@fundable_loan_count
+	end
+
+	def purchasable_loan_count
+		@purchasable_loan_count ||= [fundable_loan_count, owned_loans_list.size].min
+		if $verbose
+			puts "@purchasable_loan_count: #{@purchasable_loan_count}"
+		end
+		@purchasable_loan_count # make @purchasable_loan_count the return value
 	end
 
 	# LendingClub server time and local server time may not always be synced or loans may be release a bit early or late.  
@@ -107,12 +135,12 @@ class Loans
 	def check_for_release
 	 	check_count = 0
 	 	max_checks = configatron.lending_club.max_checks
-	 	starting_loan_list_size = loan_list.values[1].size
+	 	starting_loan_list_size = fresh_loan_list.values[1].size
 	 	puts "starting_loan_list_size: #{starting_loan_list_size}"
 	 	while check_count < max_checks
 	 		check_count = check_count + 1
 	 		puts "check_for_release #{check_count}"
-	 		current_loan_list_size = loan_list.values[1].size
+	 		current_loan_list_size = fresh_loan_list.values[1].size
 	 		puts "current_loan_list_size: #{current_loan_list_size}"
 	 		if current_loan_list_size > starting_loan_list_size 
 	 			puts "Loans have been released. Preparing to purchasing loans."
@@ -120,152 +148,159 @@ class Loans
 	 			return true
 	 		end
 	 		puts "Pre-Filtered Loan Count:  #{current_loan_list_size}"
-	 		sleep(1) # wait before checking again
+	 		sleep(1) # wait X seconds before checking again
 	 	end
 	 	PB.add_line("After #{check_count} checks the number of available loans remained at or below #{starting_loan_list_size}.")
 	 	return false
 	 end
- 
-	def loan_list
-		@loan_list = JSON.parse(get_available_loans)
-		if $verbose
-			puts "@loan_list loan count: #{@loan_list.values[1].size}"
-		end
-		@loan_list # this seems to be necessary, not sure why
-	end
 
 	def get_available_loans
 		method_url = "#{configatron.lending_club.base_url}/#{configatron.lending_club.api_version}/loans/listing" #only show loans released in the most recent release (add "?showAll=true" to see all loans)
 		if $debug
 			puts "Pulling available loans (from test file): '#{configatron.testing_files.available_loans}'"
 			response = File.read(File.expand_path("../" + configatron.testing_files.available_loans, __FILE__))
-			puts "Pre-Filtered Loan Count (from test file):  #{result.values[1].size}"
+			puts "Pre-Filtered Loan size (from test file):  #{JSON.parse(response).values[1].size}"
 		else
 			begin
-				puts "Pulling fresh Loans data."
+				puts "get_available_loans.Pulling fresh Loans data."
 			 	puts "method_url: #{__method__} -> #{method_url}"
 				response = RestClient.get( method_url, 
 				 		"Authorization" => configatron.lending_club.authorization,
 				 		"Accept" => configatron.lending_club.content_type,
 				 		"Content-Type" => configatron.lending_club.content_type
 					)
-				puts "Pre-Filtered Loan Count:  #{result.values[1].size}"
+				puts "Pre-Filtered Loan count:  #{JSON.parse(response).values[1].size}"
 			rescue
 				PB.add_line("Failure in: #{__method__}\nUnable to get a list of available loans.")
 			end
 		end
-		# puts JSON.parse(response).class
 		return response
 	end	 
 
-	def filter_on_default_prob(default_probs)
-		unless default_probs.nil?
-			default_probabilities = JSON.parse(default_probs)
-			puts default_probabilities.class
-			# # extract loanId's from a hash of already owned loans and remove those loans from the list of filtered loans
-			# a = []
-			# default_prob.to_json.values[0].map {|o| a << o["loanId"]}
-			# a.each { |i| @loan_list.delete_if {|key, value| key["memberId"] == i} }
+	def filter_on_default_probability
+		if $verbose
+			puts "Filter on default probability." 
+		end
+		begin
+			default_probabilities = JSON.parse(get_default_predictions)
+			probabilities = JSON.parse(default_probabilities.values[0])
+			puts "probabilities class: #{probabilities.class}"
+			delete_list = []
+
+			#add members to delete_list array where default probability is X.XX or more.  These will be filterd out.
+			probabilities.select {|o| 
+			 	o["defaultProb"] >= configatron.default_predictor.max_default_prob 
+			 }.each {|k,v| delete_list << k["memberId"]}
 			
-			# puts default_probs
-
-			 # default_probs.each do |prob|
-			 # 	p prob
-			 # end
-
-			 # puts "end"
-			# puts default_probs.class
-			# default_probs.delete_if {|k, v| v > 0.01} 
-
+			delete_list.each {|i| @filtered_loan_list.values[1].delete_if {|k,v| k["memberId"] == i.to_i}}
+			puts "post filter_on_default_probability.filtered_loan_list.size #{filtered_loan_list.values[1].size}"
 		end
 	end
 
-	def filter_loans
+	def get_default_predictions
+		method_url = "#{configatron.default_predictor.base_url}:#{configatron.default_predictor.port}/predict"
 		if $verbose
-			puts "Filtering loan list."
-			# puts "filter_loans.Pre-Filtered Loan Count (before filter):  #{loan_list.values[1].size}"
+			puts "Getting default predictions."
+			puts "method_url: #{__method__} -> #{method_url}"
 		end
-		unless @loan_list.nil?
-			@filtered_loan_list = @loan_list.values[1].select do |o|
+		if $debug
+			begin
+				puts "Pulling test loans for default predictor (from test file): '#{configatron.default_predictor.test_file}'"
+				response = RestClient.post( method_url, File.read(File.expand_path("../" + configatron.default_predictor.test_file, __FILE__)), 
+			  	 		"Accept" => configatron.default_predictor.content_type,
+			  	 		"Content-Type" => configatron.default_predictor.content_type
+			  		)
+			rescue
+				PB.add_line("Failure in: #{__method__}\nUnable to get a default predictions.  The default predictor service at #{configatron.default_predictor.base_url} may not be running.")
+			end
+		else
+			begin
+				response = RestClient.post( method_url, get_available_loans, 
+				  		"Accept" => configatron.default_predictor.content_type,
+				  		"Content-Type" => configatron.default_predictor.content_type
+				 	)
+			rescue
+				PB.add_line("Failure in: #{__method__}\nUnable to get a default predictions.  The default predictor service at #{configatron.default_predictor.base_url} may not be running.")
+			end
+		end
+		#make a valid JSON document so the response can be parsed to a HASH
+		json_doc = '{"predictions":' + response + '}'
+	end
+
+	def filter_on_additional_criteria
+		if $verbose
+			puts "Filtering on additional criteria."
+			puts "filter_on_additional_criteria.Pre-Filtered Loan Count (before additional filter):  #{filtered_loan_list.values[1].size}" #filtered_loan_list is still a hash
+		end
+		unless loan_list.nil?
+			@filtered_loan_list = filtered_loan_list.values[1].select do |o|
 				o["term"].to_i == TERMS.months36 && 
-				o["annualInc"].to_f / 12 > 3000 &&
-				o["empLength"].to_i > 23 && #
-				o["inqLast6Mths"].to_i <= 1 &&
-				o["pubRec"].to_i == 0 &&
+				# o["annualInc"].to_f / 12 > 3000 &&
+				# o["empLength"].to_i > 23 && #
+				# o["inqLast6Mths"].to_i <= 1 &&
+				# o["pubRec"].to_i == 0 &&
 				o["intRate"].to_f < 27.0 &&
-				o["intRate"].to_f > 16.0 &&
-				o["dti"].to_f <= 20.00 &&
-				o["delinq2Yrs"].to_i < 4 &&
-				( 	# exclude loans where the monthly instalment amount is more than 10% of the borrower's monthly income
-					o["installment"].to_f / (o["annualInc"].to_f / 12) < 0.1 
-				) &&
-				(
-					o["purpose"].to_s == PURPOSES.credit_card || 
-					o["purpose"].to_s == PURPOSES.credit_card_refinancing ||
-					o["purpose"].to_s == PURPOSES.consolidate
-				)
+				o["intRate"].to_f > 16.0 
+				# o["dti"].to_f <= 20.00 &&
+				# o["delinq2Yrs"].to_i < 4 &&
+				# ( 	# exclude loans where the monthly instalment amount is more than 10% of the borrower's monthly income
+				# 	o["installment"].to_f / (o["annualInc"].to_f / 12) < 0.1 
+				# ) &&
+				# (
+				# 	o["purpose"].to_s == PURPOSES.credit_card || 
+				# 	o["purpose"].to_s == PURPOSES.credit_card_refinancing ||
+				# 	o["purpose"].to_s == PURPOSES.consolidate
+				# )
 			end
 			if $verbose
-				puts "filter_loans.@filtered_loan_list.size (after filter): #{@filtered_loan_list.size}"
+				puts filtered_loan_list
+				puts "filter_on_additional_criteria.filtered_loan_list.size (after additional filter): #{filtered_loan_list.size}"  #filtered_loan_list is now an array
 			end
-			# sort the loans with the highest interst rate to the front  
-			# --this is so hightst interest rate loans will be purchased first when there aren't enough funds to purchase all desireable loans
-			@filtered_loan_list.sort! { |a,b| b["intRate"].to_f <=> a["intRate"].to_f }
 		end
 	end
 
-	def remove_owned_loans(owned_loans)
+	def filter_on_owned_loans
 		if $verbose
-			puts "Removing already owned loans."
-			puts "remove_owned_loans.@filtered_loan_list.size (before removal) #{@filtered_loan_list.size}"
+			puts "Filter on owned loans."
+			puts "filter_on_owned_loans.filtered_loan_list.size (before removal) #{filtered_loan_list.size}"
 		end
 		unless loan_list.nil?
 			# extract loanId's from a hash of already owned loans and remove those loans from the list of filtered loans
-			a = []
-			owned_loans.to_json.values[0].map {|o| a << o["loanId"]}
-			a.each { |i| @filtered_loan_list.delete_if {|key, value| key["id"] == i} }
+			owned_loans_list.values[0].map {|o| o["loanId"]}.each { |i| @filtered_loan_list.delete_if {|key, value| key["id"] == i} }
 		end
 		if $verbose
-			puts "remove_owned_loans.@filtered_loan_list.size: #{@filtered_loan_list.size}"
+			puts "filter_on_owned_loans.filtered_loan_list.size: #{filtered_loan_list.size}"
 		end
 	end
 	
-	def owned_loans
+	def get_owned_loans_list
 		method_url = "#{configatron.lending_club.base_url}/#{configatron.lending_club.api_version}/accounts/#{configatron.lending_club.account}/notes"
 		if $verbose
 			puts "Pulling list of already owned loans."
 			puts "method_url: #{__method__} -> #{method_url}"
 		end
-
 		begin 
 			response = RestClient.get(method_url,
 			 		"Authorization" => configatron.lending_club.authorization,
 			 		"Accept" => configatron.lending_club.content_type,
 			 		"Content-Type" => configatron.lending_club.content_type
 				)
-
-			# result = JSON.parse(response)  #disabled for testing and to_json was added to remove_owened_loans
 		rescue
 			PB.add_line("Failure in: #{__method__}\nUnable to get the list of already owned loans.")
-		end
-		
+		end	
 		return response
-	end
-	
-	def purchasable_loan_count
-		@purchasable_loan_count ||= [fundable_loan_count, @filtered_loan_list.size].min
-		if $verbose
-			puts "@purchasable_loan_count: #{@purchasable_loan_count}"
-		end
-		@purchasable_loan_count
 	end
 	
 	def build_order_list
 		PB.add_line("Placing an order for #{purchasable_loan_count} loans.")
 
 		if purchasable_loan_count > 0
+			# sort the loans with the highest interst rate to the front  
+			# 	--this is so hightst interest rate loans will be purchased first when there isn't enough available money to purchase all desireable loans
+			@filtered_loan_list.sort! { |a,b| b["intRate"].to_f <=> a["intRate"].to_f }
+
 			order_list = Hash["aid" => configatron.lending_club.account, "orders" => 
-				@filtered_loan_list.first(purchasable_loan_count).map do |o|
+				filtered_loan_list.first(purchasable_loan_count).map do |o|
 					Hash[
 							'loanId' => o["id"].to_i,
 						 	'requestedAmount' => configatron.lending_club.investment_amount, 
@@ -280,14 +315,6 @@ class Loans
 		ensure
 			return order_list
 		end
-	end
-
-	def fundable_loan_count
-		@fundable_loan_count ||= A.available_cash.to_i / configatron.lending_club.investment_amount
-		if $verbose
-			puts "@fundable_loan_count: #{@fundable_loan_count}"
-		end
-		@fundable_loan_count
 	end
 
 	def place_order(order_list)
@@ -330,7 +357,7 @@ class Loans
 				File.open(File.expand_path(configatron.logging.order_response_log), 'a') { |file| file.write("#{Time.now.strftime("%H:%M:%S %d/%m/%Y")}\n#{response}\n\n") }
 				invested = response.values[1].select { |o| o["executionStatus"].include? 'ORDER_FULFILLED' }
 				not_in_funding = response.values[1].select { |o| o["executionStatus"].include? 'NOT_AN_IN_FUNDING_LOAN' }
-				PB.set_subject("#{invested.size.to_i} of #{purchasable_loan_count}/#{[fundable_loan_count.to_i, loan_list.size].max}")
+				PB.set_subject("#{invested.size.to_i} of #{purchasable_loan_count}/#{[fundable_loan_count.to_i, loan_list.values[1].size].max}")
 				PB.add_line("Successfully Invested:  #{invested.inject(0) { |sum, o| sum + o["investedAmount"].to_f }}") # dollar amount invested
 				if not_in_funding.any?
 					PB.add_line("No longer in funding:  #{not_in_funding.size}") # NOT_AN_IN_FUNDING_LOAN
@@ -342,7 +369,7 @@ class Loans
 				PB.add_line("Failure in: #{__method__}\nUnable to report on order response.")
 			end
 		else
-			PB.set_subject "0 of #{purchasable_loan_count}/#{[fundable_loan_count.to_i, @loan_list.size].max}"
+			PB.set_subject "0 of #{purchasable_loan_count}/#{[fundable_loan_count.to_i, loan_list.values[1].size].max}"
 		end
 	end
 
@@ -352,7 +379,7 @@ end
 class Account
 
 	def available_cash
-		@available_cash ||= get_available_cash
+		@available_cash ||= get_available_cash.to_i
 		if $verbose
 			puts "@available_cash: #{@available_cash}"
 		end
@@ -411,6 +438,10 @@ class PushBullet
 	end
 
 	def send_message
+		if not $pushbullet 
+			return
+		end
+
 		add_line("Message sent at #{Time.now.strftime("%H:%M:%S %m/%d/%Y")}")
 
 		if $verbose
