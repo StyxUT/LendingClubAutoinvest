@@ -23,6 +23,7 @@ configatron.configure_from_hash(
     },
     push_bullet:
     {
+            enabled: false, # true/false
             api_key: '',
             device_id: ''
     },

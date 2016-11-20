@@ -46,21 +46,21 @@ require 'washbullet' #PushBullet
 
 ###############################
 #  	Notes:
-# 	It's intended for this script to be scheduled to run about one minute prior to the time LendingClub releases new loans. 
-# 	Currently LendingClub releases new loans at 7 AM, 11 AM, 3 PM and 7 PM (MST) each day.
-#   This is ideally handled by the clock.rb/clockworkd/colckworker.sh setup 
+# 	 It's intended for this script to be scheduled to run about one minute prior to the time LendingClub releases new loans. 
+# 	 Currently LendingClub releases new loans at 7 AM, 11 AM, 3 PM and 7 PM (MST) each day.
+#    This is ideally handled by the clock.rb/clockworkd/colckworker.sh setup 
 ###############################
 
 
 ###############################
-#   Start & Stop
-#   to start: $ bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/clock.rb
-#   to stop: $ bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/clock.rb
+#   clockworkd Start/Stop
+#    to start: $ bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/clock.rb
+#    to stop: $ bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/clock.rb
 ###############################
 
 $debug = false 
 $verbose = true
-$pushbullet = true
+$pushbullet = configatron.push_bullet.enabled
 
 class Loans
 	TERMS = Enum.new(:TERMS, :months60 => 60, :months36 => 36)
@@ -475,7 +475,7 @@ class PushBullet
 end
 
 # For testing outside of clockwork.d/clock.rb
- PB = PushBullet.new
- A = Account.new
+ # PB = PushBullet.new
+ # A = Account.new
 
- Loans.new.purchase_loans
+ # Loans.new.purchase_loans
