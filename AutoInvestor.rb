@@ -25,6 +25,7 @@ require 'washbullet' #PushBullet
 
 ###############################
 #  Install Instructions:
+#   Update values in example_configatron.rb then rename file to configatron.rb
 #  	Rotate logs using logrotate
 #		brew install logrotate (OS X only)
 #		mkdir /var/log/lending_club_autoinvestor/
@@ -50,8 +51,12 @@ require 'washbullet' #PushBullet
 #   This is ideally handled by the clock.rb/clockworkd/colckworker.sh setup 
 ###############################
 
-# to start: $ bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/clock.rb
-# to stop: $ bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/clock.rb
+
+###############################
+#   Start & Stop
+#   to start: $ bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/clock.rb
+#   to stop: $ bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/clock.rb
+###############################
 
 $debug = false 
 $verbose = true

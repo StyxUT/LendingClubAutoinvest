@@ -9,6 +9,9 @@
 /test/version_tmp/
 /tmp/
 
+##configuration file
+configatron.rb
+
 ## Specific to RubyMotion:
 .dat*
 .repl_history
