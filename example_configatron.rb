@@ -18,7 +18,7 @@ configatron.configure_from_hash(
             base_url: 'http://###.###.###.###',
             content_type: 'application/json',
             port: '####',
-            max_default_prob: '0.01',
+            max_default_prob: 0.01,
             test_file: 'Test/loanlist-example.json'
     },
     push_bullet:
@@ -31,7 +31,8 @@ configatron.configure_from_hash(
     {
             #path to store log files
             order_response_log: '/var/log/lending_club_autoinvestor/lc_order_response.log',
-            order_list_log: '/var/log/lending_club_autoinvestor/lc_order_list.log'
+            order_list_log: '/var/log/lending_club_autoinvestor/lc_order_list.log',
+            error_list_log: '/var/log/lending_club_autoinvestor/lc_error_list.log'
     },
     testing_files:
     {
