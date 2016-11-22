@@ -10,54 +10,6 @@ require 'washbullet' #PushBullet
 
 #require 'byebug'
 
-
-#  TODO:
-#  Add Setup Instructions
-#  		Add instructons for using clock.rb with /etc/init.d/clockworker.sh
-#  		Add instruction for using clockworkd and clockwork
-# 		(recomend using foreman/upstart)
-#  Implement Unit Tests
-#  Improve order response messaging
-# 		Currently only supports successful purchases, and no longer in funding
-#  Add support to allow investing different amounts depending on account factors
-#  		E.g. If available funds is larger than $300 and number of owned notes is > 500 invest $50 per note instead of $25
-
-
-###############################
-#  Install Instructions:
-#   Update values in example_configatron.rb then rename file to configatron.rb
-#  	Rotate logs using logrotate
-#		brew install logrotate (OS X only)
-#		mkdir /var/log/lending_club_autoinvestor/
-# 			ensure executing process has write access to directory
-#				sudo chown -R <user_name> /var/log/lending_club_autoinvestor/
-#		add below to "/etc/logrotate.d/lending_club_autoinvestor" file:
-#			/var/log/lending_club_autoinvestor/*.log {
-#		        weekly
-#		        missingok
-#		        rotate 7   
-#		        compress
-#		        notifempty
-#				nocreate
-#			}
-#		modify configuration as needed (man logrotate)
-###############################
-
-
-###############################
-#  	Notes:
-# 	 It's intended for this script to be scheduled to run about one minute prior to the time LendingClub releases new loans. 
-# 	 Currently LendingClub releases new loans at 7 AM, 11 AM, 3 PM and 7 PM (MST) each day.
-#    This is ideally handled by the clock.rb/clockworkd/colckworker.sh setup 
-###############################
-
-
-###############################
-#   clockworkd Start/Stop
-#    to start: $ bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/clock.rb
-#    to stop: $ bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/clock.rb
-###############################
-
 $debug = false 
 $verbose = true
 
@@ -212,7 +164,7 @@ class Loans
 			default_probabilities = JSON.parse(default_predictions)
 			probabilities = JSON.parse(default_probabilities.values[0])
 
-			#add members to delete_list array where default probability is more than X.XX.  These will be filterd out.
+			#add members to delete_list array where default probability is more than X.XX.  These will be filtered out.
 			delete_list = []
 			probabilities.select {|o| 
 			 	o["defaultProb"].to_f > configatron.default_predictor.max_default_prob # if greater, add to delete list
@@ -278,7 +230,7 @@ class Loans
 				o["intRate"].to_f > 16.0 
 				# o["dti"].to_f <= 20.00 &&
 				# o["delinq2Yrs"].to_i < 4 &&
-				# ( 	# exclude loans where the monthly instalment amount is more than 10% of the borrower's monthly income
+				# ( 	# exclude loans where the monthly installment amount is more than 10% of the borrower's monthly income
 				# 	o["installment"].to_f / (o["annualInc"].to_f / 12) < 0.1 
 				# ) &&
 				# (
@@ -329,8 +281,8 @@ class Loans
 		PB.add_line("Placing an order for #{purchasable_loan_count} loans.")
 
 		if purchasable_loan_count > 0
-			# sort the loans with the highest interst rate to the front  
-			# 	--this is so highetst interest rate loans will be purchased first when there isn't enough available money to purchase all desireable loans
+			# sort the loans with the highest interest rate to the front  
+			# 	--this is so highest interest rate loans will be purchased first when there isn't enough available money to purchase all desirable loans
 			@filtered_loan_list.sort! { |a,b| b["intRate"].to_f <=> a["intRate"].to_f }
 
 			order_list = Hash["aid" => configatron.lending_club.account, "orders" => 
@@ -379,7 +331,7 @@ class Loans
 					end
 				rescue
 					PB.add_line("Failure in: #{__method__}\nUnable to place order with method_url:\n#{method_url}")
-					report_order_response(nil) # order failed; enusure reporting
+					report_order_response(nil) # order failed; ensure reporting
 					return
 				end
 			end
