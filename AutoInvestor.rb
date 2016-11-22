@@ -35,7 +35,7 @@ require 'washbullet' #PushBullet
 #			/var/log/lending_club_autoinvestor/*.log {
 #		        weekly
 #		        missingok
-#		        rotate 7
+#		        rotate 7   
 #		        compress
 #		        notifempty
 #				nocreate
@@ -70,14 +70,14 @@ class Loans
 		A.available_cash
 		owned_loans_list
 
-		 if check_for_release
+		 # if check_for_release
 			if default_predictions.nil?
 				terminate_early
 			else
 			 	apply_filtering_criteria
 			 	place_order(build_order_list)
 			end
-		 end
+		 # end
 
 		if configatron.push_bullet.enabled 
 			PB.send_message # send PushBullet message
