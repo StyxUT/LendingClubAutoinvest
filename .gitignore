@@ -9,7 +9,7 @@
 /test/version_tmp/
 /tmp/
 
-##configuration file
+## Private configuration file
 configatron.rb
 
 ## Specific to RubyMotion:
@@ -36,3 +36,6 @@ build/
 
 # unless supporting rvm < 1.11.0 or doing something fancy, ignore this:
 .rvmrc
+
+## OS Files
+.DS_Store

@@ -1,7 +1,7 @@
-### PlainTasks task tracking ###
+### PlainTasks task tracking TODO list###
 
 How to use PlainTask  
-  https://packagecontrol.io/packages/PlainTasks (☐ ⌘ + shift + u -> will open URL under cursor)
+  https://packagecontrol.io/packages/PlainTasks ->  ⌘ + shift + u -> will open URL under cursor
   ☐ ⌘ + enter or ⌘ + i: new task
   ☐ ⌘ + d: toggle task as completed
   ☐ ⌘ + c: toggle task as cancelled
@@ -9,6 +9,7 @@ How to use PlainTask
 
   ☐ ⌘ + control + up/down:  move tasks up and down
   ☐ ⌘ + r: see a list of projects and quickly jump between them
+
 
 GitHub: 
  ☐ Consider making project private
@@ -47,33 +48,52 @@ GitHub:
         #    modify configuration as needed (man logrotate)
         ###############################
     ☐ clockworkd start/stop
+      ☐ update paths for "restructure" branch
         ###############################
         #   clockworkd Start/Stop
         #    to start: $ bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/clock.rb
         #    to stop: $ bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/clock.rb
         ###############################
 
+Refactoring:
+  ☐ Replace washbulelt with json-rest to have better controll over resturn result @PushBullet
+    ☐ refactor test and enable : test_send_message_can_fail
+
 AutoInvestor:
  ☐ Implement Unit Tests @high
-   ☐ decide on testing framework
+   ✔ decide on testing framework  @done (16-11-22 02:45)
+     - minitest:  tutorial url: https://launchschool.com/blog/assert-yourself-an-introduction-to-minitest
+     ✔ Use Rake to run tests @done (16-11-22 16:34)
+     ✔ Test Account class @done (16-11-22 18:29)
+     ☐ Test Push Bullet class @started
+     ☐ Test Loans class
+     ☐ Test Folio class
  ☐ Improve order response messaging @low
     Currently only supports successful purchases, and no longer in funding
- ☐ Allow investing different amounts depending on account factors @feature @low
-    E.g. If available funds is larger than $300 and number of owned notes is > 500 invest $50 per note instead of $25
+ ☐ Add conditional investment options bassed on account factors @feature @low
+   ☐ Allow investing different amounts depending on account factors @feature 
+       E.g. If available funds is larger than $X.XX and number of owned notes is > X,XXX invest $XX.XX per note instead of $XX.XX
+   ☐ Allow restricting the configatron.max_default_prob: based on account factors
+       E.g. If available funds is less than $X.XX be more restrictive
  ☐ Allow automatic transfers based on various account conditions @feature
    ☐ based on available cash
 
+
 Folio: 
-  ☐ Sell loans on Folio via Folio's API @high
-    ☐ Review owned loans for sale
-    ☐ Reprice daily
-    ☐ Determine price
-      ☐ Evaluate based on other notes from given loan
-      ☐ Evaluate based on default probability
-  ☐ Evaluate owned loand loans with Defaut Predictor for queueing for folio sale 
+  ☐ Sell loans on Folio via Folio's API @critical
+    ☐ Configatron setting to enable/disable Folio selling
+      ☐ Review owned loans for sale
+      ☐ Reprice daily
+      ☐ Determine price
+        ☐ Evaluate based on other notes from given loan
+        ☐ Evaluate based on default probability formula
+          ☐ get this from the spreadsheet
+        ☐ Evaluate based on Default Predictor result
+  ☐ Evaluate owned loans with Defaut Predictor for queueing for folio sale 
+
 
 Default Predictor:
- ☐ Fully implement Defautl Predictor
+ ☐ Fully implement Default Predictor
    ☐ Refactor default predictor into own class
    ☐ Ensure service is running by calling get/version API call
      ☐ If it isn't running connect and start the service

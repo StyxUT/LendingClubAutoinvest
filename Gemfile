@@ -1,4 +1,5 @@
 source 'https://rubygems.org'
+
 gem 'yinum'
 gem 'rest-client'
 gem 'json'
@@ -7,3 +8,4 @@ gem 'byebug'
 gem 'configatron'
 gem 'clockwork'
 gem 'daemons'
+gem 'minitest'
