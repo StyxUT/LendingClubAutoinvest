@@ -1,6 +1,5 @@
 #!/usr/bin/ruby
 
-require_relative 'autoinvestor/configatron.rb'
 require_relative 'autoinvestor/push_bullet.rb'
 require_relative 'autoinvestor/account.rb'
 require_relative 'autoinvestor/loans.rb'

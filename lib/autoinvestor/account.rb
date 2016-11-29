@@ -1,3 +1,7 @@
+require 'rest-client'
+
+require_relative './configatron.rb'
+
 class Account
 
 	def initialize(push_bullet)

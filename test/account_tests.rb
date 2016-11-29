@@ -6,7 +6,6 @@ require_relative '../lib/autoinvestor/push_bullet.rb'
 require_relative '../lib/autoinvestor/configatron.rb'
 
 
-
 class AccountTest < Minitest::Test
 
 	def setup

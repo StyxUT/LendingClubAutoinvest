@@ -1,5 +1,4 @@
 require 'minitest/autorun'
-require 'rest-client'
 
 require_relative '../lib/autoinvestor/push_bullet.rb'
 require_relative '../lib/autoinvestor/configatron.rb'

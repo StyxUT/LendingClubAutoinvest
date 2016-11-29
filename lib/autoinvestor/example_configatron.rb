@@ -19,7 +19,7 @@ configatron.configure_from_hash(
             content_type: 'application/json',
             port: '####',
             max_default_prob: 0.01,  # maximum acceptable probability of default.  Note:  0.01 is 1%
-            test_file: 'Test/loanlist-example.json'
+            test_file: 'test_files/loanlist_example.json'
     },
     push_bullet:
     {
@@ -34,12 +34,16 @@ configatron.configure_from_hash(
             order_list_log: '/var/log/lending_club_autoinvestor/lc_order_list.log',
             error_list_log: '/var/log/lending_club_autoinvestor/lc_error_list.log'
     },
-    testing_files:
+    test_files:
     {
             #alternate between the two purchase_response values to alternate test types
-            purchase_response: 'Test/MixedPurchaseResponse.rb',
-            #purchase_response: 'Test/FailedPurchaseResponse.rb',
-            available_loans: 'Test/AvailableLoans.rb',
-            owned_loans:  'Test/OwnedLoans.rb'
+            purchase_response: 'test_files/mixed_purchase_response.json',
+            #purchase_response: 'Test/failed_purchase_response.rb',
+            available_loans: 'test_files/available_loans.json',
+            owned_loans:  'test_files/owned_loans.json'
+    },
+    folio:
+    {
+            base_url:  'https://api.lendingclub.com/api/investor/v1/accounts'
     }
 )

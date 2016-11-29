@@ -1,4 +1,7 @@
 require 'washbullet' #PushBullet
+require 'rest-client'
+
+require_relative './configatron.rb'
 
 class PushBullet
 

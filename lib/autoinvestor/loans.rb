@@ -128,8 +128,8 @@ class Loans
 	def get_available_loans
 		method_url = "#{configatron.lending_club.base_url}/#{configatron.lending_club.api_version}/loans/listing" #only show loans released in the most recent release (add "?showAll=true" to see all loans)
 		if $debug
-			puts "Pulling available loans (from test file): '#{configatron.testing_files.available_loans}'"
-			response = File.read(File.expand_path("../" + configatron.testing_files.available_loans, __FILE__))
+			puts "Pulling available loans (from test file): '#{configatron.test_files.available_loans}'"
+			response = File.read(File.expand_path("../../" + configatron.test_files.available_loans, __FILE__))
 			puts "Pre-Filtered Loan size (from test file):  #{JSON.parse(response).values[1].size}"
 		else
 			begin
@@ -177,7 +177,7 @@ class Loans
 		if $debug
 			begin
 				puts "Pulling test loans for default predictor (from test file): '#{configatron.default_predictor.test_file}'"
-				response = RestClient.post( method_url, File.read(File.expand_path("../" + configatron.default_predictor.test_file, __FILE__)), 
+				response = RestClient.post( method_url, File.read(File.expand_path("../../" + configatron.default_predictor.test_file, __FILE__)), 
 			  	 		"Accept" => configatron.default_predictor.content_type,
 			  	 		"Content-Type" => configatron.default_predictor.content_type
 			  		)
@@ -258,14 +258,19 @@ class Loans
 			puts "Pulling list of already owned loans."
 			puts "method_url: #{__method__} -> #{method_url}"
 		end
-		begin 
-			response = RestClient.get(method_url,
-			 		"Authorization" => configatron.lending_club.authorization,
-			 		"Accept" => configatron.lending_club.content_type,
-			 		"Content-Type" => configatron.lending_club.content_type
-				)
-		rescue
-			@pb.add_line("Failure in: #{__method__}\nUnable to get the list of already owned loans.")
+		if $debug
+			response = File.read(File.expand_path("../../../" + configatron.test_files.owned_loans, __FILE__))
+		else
+			begin 
+				response = RestClient.get(method_url,
+				 		"Authorization" => configatron.lending_club.authorization,
+				 		"Accept" => configatron.lending_club.content_type,
+				 		"Content-Type" => configatron.lending_club.content_type
+					)
+				File.open("owned_loans.txt", 'w') {|file| file.write(response)}
+			rescue
+				@pb.add_line("Failure in: #{__method__}\nUnable to get the list of already owned loans.")
+			end
 		end	
 		return response
 	end
@@ -307,9 +312,9 @@ class Loans
 	 	end
 	 	if $debug
 	 		puts "Debug mode - This order will NOT be placed."
-	 		puts "Pulling order response from file: '#{configatron.testing_files.purchase_response}'"
+	 		puts "Pulling order response from file: '#{configatron.test_files.purchase_response}'"
 		
-			response = File.read(File.expand_path("../" + configatron.testing_files.purchase_response, __FILE__))
+			response = File.read(File.expand_path("../../" + configatron.test_files.purchase_response, __FILE__))
 		else
 			unless order_list.nil?
 			  	begin
@@ -364,4 +369,5 @@ class Loans
 	def write_to_log(log_file, log_message)
 		File.open(File.expand_path(log_file), 'a') { |file| file.write("#{Time.now.strftime("%H:%M:%S %d/%m/%Y")}\n#{log_message}\n\n")}
 	end
+
 end
