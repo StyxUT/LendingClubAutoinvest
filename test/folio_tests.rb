@@ -28,4 +28,27 @@ class FolioTest < Minitest::Test
 		assert_equal(4, late_loans.size)
 	end
 
+	def test_calculate_note_value
+		yield_to_maturity = 20.05
+
+		days_delinquent_30 = 30
+		days_delinquent_90 = 90
+		days_delinquent_120 = 120
+
+		note_value_30 = @folio.calculate_note_value(yield_to_maturity, days_delinquent_30)
+		note_value_90 = @folio.calculate_note_value(yield_to_maturity, days_delinquent_90)
+		note_value_120 = @folio.calculate_note_value(yield_to_maturity, days_delinquent_120)
+
+		assert_equal(9.21, note_value_30)
+		assert_equal(2.68, note_value_90)
+		assert_equal(0.28, note_value_120)
+	end
+
+	# def test_build_sell_payload
+	# 	@folio.build_sell_payload
+	# end
+
+	def test_build_note_hash
+		@folio.build_note_hash
+	end
 end

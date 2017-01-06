@@ -20,5 +20,5 @@ task :test_loans do
 end
 
 task :test_folio do
-	ruby "test/push_bullet_tests.rb"
+	ruby "test/folio_tests.rb"
 end

@@ -67,19 +67,13 @@ AutoInvestor:
        decided to use Rake to run tests @done (16-11-22 16:34)
      ✔ Test Account class @done (16-11-22 18:29)
      ✔ Test Push Bullet class @done (16-11-28 18:40)
-     ☐ Test Folio class
-       ✔ assert late_loans contains the correct number of late loans after filter @done (16-11-28 22:31)
-       ☐ it properly determines note price
-       ☐ it creates a proper sell order
-       ☐ it reports successful sell order
-       ☐ it reports on failed sell order
      ☐ Test Loans class
        ✔ assert get_owned_loans returns loans @done (16-11-28 22:42)
        ✔ assert get_owned_loans is a RestClient respons @done (16-11-28 22:42)
        ✔ assert owned_loans_list is a hash @done (16-11-28 22:42)
-       ☐ Verify that failed_purchase_response.jason test file still work after restructure
+       ☐ Verify that failed_purchase_response.json test file still works after restructure
          ☐ make proper JSON data (if necessary)
-       ☐ Verify that mixed_purchase_response.jason test file still work after restructure
+       ☐ Verify that mixed_purchase_response.json test file still works after restructure
          ☐ make proper JSON file (if necessary)
        ☐ Verify that available_loans.json test file still works after restructure
          ☐ make proper JSON file (if necessary)
@@ -95,11 +89,18 @@ AutoInvestor:
 
 
 Folio:
+  #Folio API URL: https://www.lendingclub.com/foliofn/folioInvestingAPIDocument%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20.action
   ☐ Sell loans on Folio via Folio's API @critical
     ☐ Configatron setting to enable/disable Folio selling
     ☐ Review owned loans for sale
     ☐ Reprice daily
-    ☐ Determine price
+    ☐ Test Folio class
+       ✔ assert late_loans contains the correct number of late loans after filter @done (16-11-28 22:31)
+       ☐ it properly determines note price
+       ☐ it creates a proper sell order
+       ☐ it reports successful sell order
+       ☐ it reports on failed sell order
+    ☐ Determine note price
       ☐ Evaluate based on other notes from given loan
       ☐ Evaluate based on default probability formula
         ☐ get this from the spreadsheet
