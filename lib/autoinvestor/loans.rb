@@ -129,7 +129,7 @@ class Loans
 		method_url = "#{configatron.lending_club.base_url}/#{configatron.lending_club.api_version}/loans/listing" #only show loans released in the most recent release (add "?showAll=true" to see all loans)
 		if $debug
 			puts "Pulling available loans (from test file): '#{configatron.test_files.available_loans}'"
-			response = File.read(File.expand_path("../../" + configatron.test_files.available_loans, __FILE__))
+			response = File.read(File.expand_path("../../../" + configatron.test_files.available_loans, __FILE__))
 			puts "Pre-Filtered Loan size (from test file):  #{JSON.parse(response).values[1].size}"
 		else
 			begin
@@ -177,7 +177,7 @@ class Loans
 		if $debug
 			begin
 				puts "Pulling test loans for default predictor (from test file): '#{configatron.default_predictor.test_file}'"
-				response = RestClient.post( method_url, File.read(File.expand_path("../../" + configatron.default_predictor.test_file, __FILE__)), 
+				response = RestClient.post( method_url, File.read(File.expand_path("../../../" + configatron.default_predictor.test_file, __FILE__)), 
 			  	 		"Accept" => configatron.default_predictor.content_type,
 			  	 		"Content-Type" => configatron.default_predictor.content_type
 			  		)
@@ -267,7 +267,6 @@ class Loans
 				 		"Accept" => configatron.lending_club.content_type,
 				 		"Content-Type" => configatron.lending_club.content_type
 					)
-				File.open("owned_loans.txt", 'w') {|file| file.write(response)}
 			rescue
 				@pb.add_line("Failure in: #{__method__}\nUnable to get the list of already owned loans.")
 			end

@@ -31,28 +31,38 @@ class Folio
 	end
 
 	def build_sell_payload (note_hash)
-		sell_hash = {:aid => configatron.lending_club.account, :expireDate => (Date.today+3).to_s, :notes => build_note_hash} 
+		sell_hash = {:aid => configatron.lending_club.account, :expireDate => (Date.today+3).to_s, :notes => build_sell_note_list} 
 		# '{"aid": ' + configatron.lending_club.account.to_s + ",\n" + '"expireDate":"' + "#{(Date.today+3).to_s}"'
 		payload = JSON.generate(sell_hash)
 		puts payload
 	end
 
-	def build_note_hash
-		notes = filter_on_greater_than_30_days_late
+	def build_sell_note_list
+		late_notes = filter_on_greater_than_30_days_late
 
-		puts "notes Class #{notes.class}"
 		note_array = []
 				
-		notes.each do |n|
+		late_notes.each do |n|
 			 note_array += [
 			 	:loanId => n["loanId"], 
 				:orderId => n["orderId"],
 			 	:noteId => n["noteId"]
+			 	# :askingPrice => get_asking_price
 			 ]
 		end 			
 
-		puts "note_hash: #{note_array}"
+		return JSON.generate(note_array)
+	end
 
-		return note_array
+	def determine_payment_amount(loan_length, interest_rate, note_amount)
+		interest_rate_per_period = interest_rate/100.00/12.00
+		
+		return (note_amount * ((interest_rate_per_period * (1+interest_rate_per_period)**loan_length) / (((1 + interest_rate_per_period)**loan_length) - 1))).round(2)
+	end
+
+	def estimate_last_payment_date(payments_received, issue_date, payment_amount)
+		# puts payments_received/payment_amount
+		# puts issue_date.next_month(payments_received/payment_amount)
+		return issue_date.next_day(payments_received/payment_amount*30)
 	end
 end

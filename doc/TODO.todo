@@ -86,6 +86,7 @@ AutoInvestor:
        E.g. If available funds is less than $X.XX be more restrictive
  ☐ Allow automatic transfers based on various account conditions @feature
    ☐ based on available cash
+ ☐ Add configatron option for setting upper and lower limit used by filter
 
 
 Folio:
