@@ -258,9 +258,9 @@ class Loans
 			puts "Pulling list of already owned loans."
 			puts "method_url: #{__method__} -> #{method_url}"
 		end
-		# if $debug
-		# 	response = File.read(File.expand_path("../../../" + configatron.test_files.owned_loans_detail, __FILE__))
-		# else
+		if $debug
+		 	response = File.read(File.expand_path("../../../" + configatron.test_files.owned_loans_detail, __FILE__))
+		else
 			begin 
 				response = RestClient.get(method_url,
 				 		"Authorization" => configatron.lending_club.authorization,
@@ -270,8 +270,8 @@ class Loans
 			rescue
 				@pb.add_line("Failure in: #{__method__}\nUnable to get the list of already owned loans.")
 			end
-		# end	
-		File.open(File.expand_path("./" + configatron.test_files.owned_loans_detail), 'w') { |file| file.write(response)}
+		end	
+		# File.open(File.expand_path("./" + configatron.test_files.owned_loans_detail), 'w') { |file| file.write(response)}
 		return response
 	end
 	
