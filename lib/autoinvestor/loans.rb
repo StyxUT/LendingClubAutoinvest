@@ -151,7 +151,7 @@ class Loans
 	def filter_on_default_probability
 		if $verbose
 			puts "Filter on default probability."
-			puts "filter_on_default_probability.filtered_loan_list_count (before default filter): #{filtered_loan_list_count}"
+			puts "filter_on_default_probability.	 (before default filter): #{filtered_loan_list_count}"
 		end
 		unless default_predictions.nil?
 			default_probabilities = JSON.parse(default_predictions)
@@ -253,24 +253,25 @@ class Loans
 	end
 	
 	def get_owned_loans_list
-		method_url = "#{configatron.lending_club.base_url}/#{configatron.lending_club.api_version}/accounts/#{configatron.lending_club.account}/notes"
+		method_url = "#{configatron.lending_club.base_url}/#{configatron.lending_club.api_version}/accounts/#{configatron.lending_club.account}/detailednotes"
 		if $verbose
 			puts "Pulling list of already owned loans."
 			puts "method_url: #{__method__} -> #{method_url}"
 		end
-		if $debug
-			response = File.read(File.expand_path("../../../" + configatron.test_files.owned_loans, __FILE__))
-		else
+		# if $debug
+		# 	response = File.read(File.expand_path("../../../" + configatron.test_files.owned_loans_detail, __FILE__))
+		# else
 			begin 
 				response = RestClient.get(method_url,
 				 		"Authorization" => configatron.lending_club.authorization,
 				 		"Accept" => configatron.lending_club.content_type,
 				 		"Content-Type" => configatron.lending_club.content_type
-					)
+					)	
 			rescue
 				@pb.add_line("Failure in: #{__method__}\nUnable to get the list of already owned loans.")
 			end
-		end	
+		# end	
+		File.open(File.expand_path("./" + configatron.test_files.owned_loans_detail), 'w') { |file| file.write(response)}
 		return response
 	end
 	
@@ -317,6 +318,13 @@ class Loans
 		else
 			unless order_list.nil?
 			  	begin
+
+#              	!!!!!!!!!!!!!!!!!!
+# 				
+#				This section is disabled to prevent acutally purchasing loans while developing
+#    			
+#  				!!!!!!!!!!!!!!!!
+
 				  	# response = RestClient.post(method_url, order_list.to_json,
 				  	#  	"Authorization" => configatron.lending_club.authorization,
 				  	#  	"Accept" => configatron.lending_club.content_type,

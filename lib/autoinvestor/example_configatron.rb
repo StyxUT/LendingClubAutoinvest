@@ -29,21 +29,23 @@ configatron.configure_from_hash(
     },
     logging:
     {
-            #path to store log files
-            order_response_log: '/var/log/lending_club_autoinvestor/lc_order_response.log',
-            order_list_log: '/var/log/lending_club_autoinvestor/lc_order_list.log',
-            error_list_log: '/var/log/lending_club_autoinvestor/lc_error_list.log'
+        #path to store log files
+        order_response_log: '/var/log/lending_club_autoinvestor/lc_order_response.log',
+        order_list_log: '/var/log/lending_club_autoinvestor/lc_order_list.log',
+        error_list_log: '/var/log/lending_club_autoinvestor/lc_error_list.log'
     },
     test_files:
     {
-            #alternate between the two purchase_response values to alternate test types
-            purchase_response: 'test_files/mixed_purchase_response.json',
-            #purchase_response: 'Test/failed_purchase_response.rb',
-            available_loans: 'test_files/available_loans.json',
-            owned_loans:  'test_files/owned_loans.json'
+        #alternate between the two purchase_response values to alternate test types
+        purchase_response: 'test/test_files/mixed_purchase_response.json',
+        #purchase_response: 'test/test_files/failed_purchase_response.rb',
+        available_loans: 'test/test_files/available_loans.json',
+        owned_loans:  'test/test_files/owned_loans.json',
+        owned_loans_detail:  'test/test_files/owned_loans_detail.json'
     },
     folio:
     {
-            base_url:  'https://api.lendingclub.com/api/investor/v1/accounts'
+        base_url: 'https://api.lendingclub.com/api/investor/v1/accounts'
+        # https://www.lendingclub.com/developers/detailed-notes-owned.action
     }
 )
