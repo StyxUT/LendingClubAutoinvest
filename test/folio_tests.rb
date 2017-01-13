@@ -71,7 +71,14 @@ class FolioTest < Minitest::Test
 		assert_equal(expected_asking_price, actual_asking_price)
 	end
 
+	def test_caclulate_yield_to_maturity
+		note_list = JSON.parse(@folio.build_sell_note_list)
+		puts note_list[0]
+		puts @folio.calculate_yield_to_maturity(note_list[0])
+	end
+
 	def test_determine_payment_amount
+		skip "No longer needed due to lastPaymentDate in detailed data from owned notes"
 		note_list = @folio.filter_on_greater_than_30_days_late
 		assert_equal(0.83, @folio.determine_payment_amount(36, 12, 25.00))
 		assert_equal(1.01, @folio.determine_payment_amount(note_list[0]["loanLength"], note_list[0]["interestRate"], note_list[0]["noteAmount"]))

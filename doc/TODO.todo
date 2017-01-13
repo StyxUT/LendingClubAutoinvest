@@ -102,6 +102,9 @@ Folio:
        ☐ it reports successful sell order
        ☐ it reports on failed sell order
     ☐ Determine note price
+      Calculation: 
+        #days delinquent: lastPaymentDate - current date
+        #days delinquent, YTM; defaut rate - 10%
       ☐ Evaluate based on other notes from given loan
       ☐ Evaluate based on default probability formula
         ☐ get this from the spreadsheet
@@ -109,6 +112,7 @@ Folio:
   ☐ Evaluate owned loans with Defaut Predictor for queueing for folio sale
   ☐ Update clock.rb file to schedule note sales (daily?)
     ☐ stop and start clockowrkd service
+
 
 
 Default Predictor:

@@ -6,7 +6,6 @@ class Folio
 		@pb = push_bullet
 	end
 
-
 	def filter_on_greater_than_30_days_late
 		if $verbose
 			puts "Filtering on greater than 30 days late."
@@ -47,11 +46,16 @@ class Folio
 			 	:loanId => n["loanId"], 
 				:orderId => n["orderId"],
 			 	:noteId => n["noteId"]
-			 	# :askingPrice => get_asking_price
+			 	# :askingPrice => get_asking_price(note)
 			 ]
 		end 			
 
 		return JSON.generate(note_array)
+	end
+
+	def calculate_yield_to_maturity(note)
+		#payment_amount * terms - (paymentsReceived + interestReceived) 
+		determine_payment_amount(note["loanLength"], note["interestRate"], note["noteAmount"]) * note["loanLength"] - (note["principalReceived"] + note["interestReceived"])
 	end
 
 	def determine_payment_amount(loan_length, interest_rate, note_amount)

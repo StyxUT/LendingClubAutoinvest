@@ -3,29 +3,29 @@ require 'configatron'
 configatron.configure_from_hash(
     lending_club:
     {
-            authorization: '',  #Lending Club API key
-            account: 123456789,       # Lending Club account number
-            portfolio_id: 123456789,         # id of the portfolio to add purchased notes to
-            investment_amount: 25,          # amount to invest per loan ($25 minimum)
-            max_checks: 35,     # number of times to check for newly released loans
+        authorization: '',  #Lending Club API key
+        account: 123456789,       # Lending Club account number
+        portfolio_id: 123456789,         # id of the portfolio to add purchased notes to
+        investment_amount: 25,          # amount to invest per loan ($25 minimum)
+        max_checks: 35,     # number of times to check for newly released loans
 
-            api_version: 'v1',
-            base_url: 'https://api.lendingclub.com/api/investor',
-            content_type: 'application/json'
+        api_version: 'v1',
+        base_url: 'https://api.lendingclub.com/api/investor',
+        content_type: 'application/json'
     },
     default_predictor:
     {
-            base_url: 'http://###.###.###.###',
-            content_type: 'application/json',
-            port: '####',
-            max_default_prob: 0.01,  # maximum acceptable probability of default.  Note:  0.01 is 1%
-            test_file: 'test_files/loanlist_example.json'
+        base_url: 'http://###.###.###.###',
+        content_type: 'application/json',
+        port: '####',
+        max_default_prob: 0.01,  # maximum acceptable probability of default.  Note:  0.01 is 1%
+        test_file: 'test_files/loanlist_example.json'
     },
     push_bullet:
     {
-            enabled: false, # true/false
-            api_key: '',
-            device_id: ''
+        enabled: false, # true/false
+        api_key: '',
+        device_id: ''
     },
     logging:
     {
