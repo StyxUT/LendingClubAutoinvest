@@ -54,8 +54,16 @@ class Folio
 	end
 
 	def calculate_yield_to_maturity(note)
-		#payment_amount * terms - (paymentsReceived + interestReceived) 
-		determine_payment_amount(note["loanLength"], note["interestRate"], note["noteAmount"]) * note["loanLength"] - (note["principalReceived"] + note["interestReceived"])
+		#payment_amount * terms - (paymentsReceived + interestReceived)
+		puts "note: #{note}"
+		puts note["loanLength"]
+		puts note["interestRate"]
+		puts note["noteAmount"]
+		puts note["principalReceived"]
+		puts note["interestReceived"]
+
+
+		# determine_payment_amount(note["loanLength"], note["interestRate"], note["noteAmount"]) * note["loanLength"] - (note["principalReceived"] + note["interestReceived"])
 	end
 
 	def determine_payment_amount(loan_length, interest_rate, note_amount)
