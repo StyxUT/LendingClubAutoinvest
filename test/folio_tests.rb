@@ -71,10 +71,15 @@ class FolioTest < Minitest::Test
 		assert_equal(expected_asking_price, actual_asking_price)
 	end
 
-	def test_caclulate_yield_to_maturity
-		note_list = JSON.parse(@folio.build_sell_note_list)
-		puts note_list[0]
-		puts @folio.calculate_yield_to_maturity(note_list[0])
+	def test_caclulate_remaining_yield_to_maturity
+		late_notes = @folio.filter_on_greater_than_30_days_late
+
+		puts "yield_to_maturity:  #{@folio.calculate_remaining_yield_to_maturity(late_notes.first)}"
+		assert_equal(10, @folio.calculate_remaining_yield_to_maturity(late_notes.first))
+
+		puts "yield_to_maturity:  #{@folio.calculate_remaining_yield_to_maturity(late_notes.last)}"
+		assert_equal(10, @folio.calculate_remaining_yield_to_maturity(late_notes.last))
+
 	end
 
 	def test_determine_payment_amount
@@ -107,6 +112,12 @@ class FolioTest < Minitest::Test
 		assert (2 >= date_diff.abs)# the calculated last payment date should not be more than 2 days from the expected date
 		
 		# skip 'Broken Test: assert_equal(Date.parse("2015-06-12"), Date.parse(@folio.estimate_last_payment_date(note_list[2]["paymentsReceived"], Date.parse(note_list[2]["issueDate"]), payment_amount)))'
+	end
+
+	def test_get_asking_price
+		skip "not yet implemented"	
+		late_note = @folio.filter_on_greater_than_30_days_late.first
+		puts "get_asking_price: #{@folio.get_asking_price(late_note)}"	
 	end
 
 end

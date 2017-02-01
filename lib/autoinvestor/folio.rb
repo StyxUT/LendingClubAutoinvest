@@ -46,24 +46,25 @@ class Folio
 			 	:loanId => n["loanId"], 
 				:orderId => n["orderId"],
 			 	:noteId => n["noteId"]
-			 	# :askingPrice => get_asking_price(note)
+			 	# :askingPrice => get_asking_price(n)
 			 ]
 		end 			
 
 		return JSON.generate(note_array)
 	end
 
-	def calculate_yield_to_maturity(note)
-		#payment_amount * terms - (paymentsReceived + interestReceived)
-		puts "note: #{note}"
-		puts note["loanLength"]
-		puts note["interestRate"]
-		puts note["noteAmount"]
-		puts note["principalReceived"]
-		puts note["interestReceived"]
+	def get_asking_price(note)
+		calculate_remaining_yield_to_maturity(note)
+	end
 
-
-		# determine_payment_amount(note["loanLength"], note["interestRate"], note["noteAmount"]) * note["loanLength"] - (note["principalReceived"] + note["interestReceived"])
+	def calculate_remaining_yield_to_maturity(note)
+		payment_amount = determine_payment_amount(note["loanLength"], note["interestRate"], note["noteAmount"])
+		yield_to_maturity = payment_amount * note["loanLength"]
+		
+		#yield to maturity minus principal received and interest received
+		remaining_yield_to_maturity = yield_to_maturity - note["principalReceived"] - note["interestReceived"]
+		
+		return remaining_yield_to_maturity 
 	end
 
 	def determine_payment_amount(loan_length, interest_rate, note_amount)
