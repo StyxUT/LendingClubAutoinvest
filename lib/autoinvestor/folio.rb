@@ -22,11 +22,11 @@ class Folio
 		return late_loans
 	end
 
-	def calculate_note_value(yield_to_maturity, days_delinquent)
+	def calculate_note_value(remaining_yield_to_maturity, days_delinquent)
 		#excel formula for charge off probability:  =0.0882253028*POWER(days_delinquent,0.5038668843)
 		charge_off_percentage = 0.0882253028 * (days_delinquent**0.5038668843)
 
-		return ((yield_to_maturity - (yield_to_maturity * charge_off_percentage)) * 0.9).round(2)  #discount by 10%
+		return ((remaining_yield_to_maturity - (remaining_yield_to_maturity * charge_off_percentage)) * 0.9).round(2)  #discount by 10%
 	end
 
 	def build_sell_payload (note_hash)
@@ -54,7 +54,14 @@ class Folio
 	end
 
 	def get_asking_price(note)
-		calculate_remaining_yield_to_maturity(note)
+		rytm = calculate_remaining_yield_to_maturity(note)
+		days_delinquent = calculate_days_delinquent(note)
+		note_value = calculate_note_value(rytm, days_delinquent)
+	end
+
+	def calculate_days_delinquent(note)
+		 date_diff = DateTime.now - Date.parse(note["lastPaymentDate"])
+		 return date_diff.to_i
 	end
 
 	def calculate_remaining_yield_to_maturity(note)
@@ -73,9 +80,4 @@ class Folio
 		return (note_amount * ((interest_rate_per_period * (1+interest_rate_per_period)**loan_length) / (((1 + interest_rate_per_period)**loan_length) - 1))).round(2)
 	end
 
-	def estimate_last_payment_date(payments_received, issue_date, payment_amount)
-		# puts payments_received/payment_amount
-		# puts issue_date.next_month(payments_received/payment_amount)
-		return issue_date.next_day(payments_received/payment_amount*30)
-	end
 end

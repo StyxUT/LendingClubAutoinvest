@@ -74,12 +74,8 @@ class FolioTest < Minitest::Test
 	def test_caclulate_remaining_yield_to_maturity
 		late_notes = @folio.filter_on_greater_than_30_days_late
 
-		puts "yield_to_maturity:  #{@folio.calculate_remaining_yield_to_maturity(late_notes.first)}"
-		assert_equal(10, @folio.calculate_remaining_yield_to_maturity(late_notes.first))
-
-		puts "yield_to_maturity:  #{@folio.calculate_remaining_yield_to_maturity(late_notes.last)}"
-		assert_equal(10, @folio.calculate_remaining_yield_to_maturity(late_notes.last))
-
+		assert_equal(11.23, @folio.calculate_remaining_yield_to_maturity(late_notes.first).round(2))
+		assert_equal(62.96, @folio.calculate_remaining_yield_to_maturity(late_notes.last).round(2))
 	end
 
 	def test_determine_payment_amount
@@ -89,29 +85,12 @@ class FolioTest < Minitest::Test
 		assert_equal(1.01, @folio.determine_payment_amount(note_list[0]["loanLength"], note_list[0]["interestRate"], note_list[0]["noteAmount"]))
 	end
 
-	def test_estimate_last_payment_date
-		skip "No longer needed due to lastPaymentDate in detailed data from owned notes"
-		assert_equal(Date.parse("2016-11-22"), @folio.estimate_last_payment_date(10.68, Date.parse("2015-11-28"), 0.89))
-
-		note_list = @folio.filter_on_greater_than_30_days_late
-		# puts note_list
-		# puts "loanLength: #{note_list[0]["loanLength"]}"
-		# puts "noteAmount: #{note_list[0]["noteAmount"]}"
-		# puts "interestRate: #{note_list[0]["interestRate"]}"
-				
-		# puts "paymentsReceived: #{note_list[0]["paymentsReceived"]}"
-		# puts "issueDate: #{note_list[2]["issueDate"]}"
-		# puts "payment_amount: #{payment_amount}"
-		
-		payment_amount = @folio.determine_payment_amount(note_list[2]["loanLength"], note_list[2]["interestRate"], note_list[2]["noteAmount"])
-		
-		expected_last_payment_date = Date.parse('2015-06-12')
-		estimated_last_payment_date = @folio.estimate_last_payment_date(note_list[2]["paymentsReceived"], Date.parse(note_list[2]["issueDate"]), payment_amount)
-
-		date_diff = expected_last_payment_date - estimated_last_payment_date
-		assert (2 >= date_diff.abs)# the calculated last payment date should not be more than 2 days from the expected date
-		
-		# skip 'Broken Test: assert_equal(Date.parse("2015-06-12"), Date.parse(@folio.estimate_last_payment_date(note_list[2]["paymentsReceived"], Date.parse(note_list[2]["issueDate"]), payment_amount)))'
+	def test_calculate_days_delinquent
+		late_notes = @folio.filter_on_greater_than_30_days_late
+		new_last_payment_date = DateTime.now - 10.days
+		puts "new_last_payment_date: #{new_last_payment_date}"
+		late_notes.first["lastPaymentDate"] = '2017-1-20'
+		assert_equal(18, @folio.calculate_days_delinquent(late_notes.first))
 	end
 
 	def test_get_asking_price
