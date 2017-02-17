@@ -46,7 +46,7 @@ class Folio
 			 	:loanId => n["loanId"], 
 				:orderId => n["orderId"],
 			 	:noteId => n["noteId"]
-			 	# :askingPrice => get_asking_price(n)
+			 	:askingPrice => [get_asking_price(n)]
 			 ]
 		end 			
 
@@ -56,11 +56,12 @@ class Folio
 	def get_asking_price(note)
 		rytm = calculate_remaining_yield_to_maturity(note)
 		days_delinquent = calculate_days_delinquent(note)
-		note_value = calculate_note_value(rytm, days_delinquent)
+		return calculate_note_value(rytm, days_delinquent)
 	end
 
 	def calculate_days_delinquent(note)
-		 date_diff = DateTime.now - Date.parse(note["lastPaymentDate"])
+		#add a month to last payment date to use as the start of the delinqueny
+		 date_diff = DateTime.now - (Date.parse(note["lastPaymentDate"]) >> 1)
 		 return date_diff.to_i
 	end
 

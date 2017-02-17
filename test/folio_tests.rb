@@ -51,24 +51,15 @@ class FolioTest < Minitest::Test
 		assert_equal(0.28, note_value_120)
 	end
 
-	# def test_build_sell_payload
-	# 	@folio.build_sell_payload
-	# end
 
 	def test_build_sell_note_list
 		note_list = JSON.parse(@folio.build_sell_note_list)
 		assert_equal(35, note_list.size)
 		# puts note_list[0]
-		assert_equal(20288615, note_list[0]["loanId"])
-		assert_equal(29091105, note_list[0]["orderId"])
-		assert_equal(51684758, note_list[0]["noteId"])
-		skip 'assert_equal("xyz", note_list[0]["askingPrice"], "askingPrice is incorrect")'
-	end
-
-	def test_determine_asking_price
-		# note_list = JSON.parse(@folio.build_sell_note_list)
-		skip "Not yet implemented"
-		assert_equal(expected_asking_price, actual_asking_price)
+		assert_equal(20288615, note_list.first["loanId"])
+		assert_equal(29091105, note_list.first["orderId"])
+		assert_equal(51684758, note_list.first["noteId"])
+		assert_equal("xyz", note_list[0]["askingPrice"], "askingPrice is incorrect")
 	end
 
 	def test_caclulate_remaining_yield_to_maturity
@@ -78,25 +69,16 @@ class FolioTest < Minitest::Test
 		assert_equal(62.96, @folio.calculate_remaining_yield_to_maturity(late_notes.last).round(2))
 	end
 
-	def test_determine_payment_amount
-		skip "No longer needed due to lastPaymentDate in detailed data from owned notes"
-		note_list = @folio.filter_on_greater_than_30_days_late
-		assert_equal(0.83, @folio.determine_payment_amount(36, 12, 25.00))
-		assert_equal(1.01, @folio.determine_payment_amount(note_list[0]["loanLength"], note_list[0]["interestRate"], note_list[0]["noteAmount"]))
-	end
-
 	def test_calculate_days_delinquent
 		late_notes = @folio.filter_on_greater_than_30_days_late
-		new_last_payment_date = DateTime.now - 10.days
-		puts "new_last_payment_date: #{new_last_payment_date}"
-		late_notes.first["lastPaymentDate"] = '2017-1-20'
-		assert_equal(18, @folio.calculate_days_delinquent(late_notes.first))
+		late_notes.first["lastPaymentDate"] = (DateTime.now - 55).to_date.to_s
+		assert_equal(24, @folio.calculate_days_delinquent(late_notes.first))
 	end
 
 	def test_get_asking_price
-		skip "not yet implemented"	
 		late_note = @folio.filter_on_greater_than_30_days_late.first
-		puts "get_asking_price: #{@folio.get_asking_price(late_note)}"	
+		late_note["lastPaymentDate"] = (DateTime.now - 55).to_date.to_s
+		assert_equal(5.68, @folio.get_asking_price(late_note))
 	end
 
 end
