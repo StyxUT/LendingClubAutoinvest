@@ -50,7 +50,7 @@ GitHub:
     ☐ clockworkd start/stop
       ☐ update paths for "restructure" branch
         ###############################
-        #   clockworkd Start/Stop
+        #   clockworkd Start/Stop (from project's root directory)
         #    to start: $ bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/clock.rb
         #    to stop: $ bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/clock.rb
         ###############################
@@ -58,7 +58,8 @@ GitHub:
 Refactoring:
   ☐ Replace washbulelt with json-rest to have better controll over resturn result @PushBullet
     Push AIP URL:  https://docs.pushbullet.com/#create-push
-    ☐ refactor test and enable : test_send_message_can_fail
+    ☐ refactor test and enable
+    ☐ test_send_message_can_fail
 
 AutoInvestor:
  ☐ Implement Unit Tests @high
@@ -90,29 +91,32 @@ AutoInvestor:
 
 
 Folio:
-  #Folio API URL: https://www.lendingclub.com/foliofn/folioInvestingAPIDocument%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20.action
+  #Folio API URL: https://www.lendingclub.com/foliofn/
+  #folio sell action: https://www.lendingclub.com/foliofn/APIDocumentationSell.action
   ☐ Sell loans on Folio via Folio's API @critical
     ☐ Configatron setting to enable/disable Folio selling
-    ☐ Review owned loans for sale
-    ☐ Reprice daily
-    ☐ Test Folio class
-       ✔ assert late_loans contains the correct number of late loans after filter @done (16-11-28 22:31)
-       ☐ it properly determines note price
-       ☐ it creates a proper sell order
-       ☐ it reports successful sell order
-       ☐ it reports on failed sell order
-    ☐ Determine note price
+    ✔ Review owned loans for sale @done (17-02-18 18:59)
+    ☐ Reprice daily   
+       ☐ Update PushBullet message within report_folio_order_response
+       ☐ Test Folio class
+         ✔ assert late_loans contains the correct number of late loans after filter @done (16-11-28 22:31)
+         ✔ it properly determines note price @done (17-02-18 18:58)
+         ✔ it creates a proper sell order @done (17-02-18 18:58)
+           ☐ it reports successful sell order to PushBullet
+           ☐ it reports on failed sell order to PushBullet
+           ☐ it logs sell order response to log file
+    ✔ Determine note price @done (17-02-18 18:59)
       Calculation: 
         #days delinquent: lastPaymentDate - current date
         #days delinquent, YTM; defaut rate - 10%
       ☐ Evaluate based on other notes from given loan
-      ☐ Evaluate based on default probability formula
-        ☐ get this from the spreadsheet
+        #is this possible?
+      ✔ Evaluate based on default probability formula @done (17-02-18 19:32)
+        ✔ get this from the spreadsheet @done (17-02-18 19:32)
       ☐ Evaluate based on Default Predictor result
   ☐ Evaluate owned loans with Defaut Predictor for queueing for folio sale
   ☐ Update clock.rb file to schedule note sales (daily?)
     ☐ stop and start clockowrkd service
-
 
 
 Default Predictor:

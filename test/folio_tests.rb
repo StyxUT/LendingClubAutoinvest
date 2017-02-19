@@ -24,6 +24,14 @@ class FolioTest < Minitest::Test
 		$debug = @orig_debug_status
 	end
 
+	def test_post_notes_to_folio
+		skip "post_notes_to_folio"
+	end
+
+	def test_sell_delinquent_notes
+		skip "sell_delinquent_notes"
+	end
+
 	def test_is_instance_of_folio
 		assert_instance_of(Folio, @folio)
 	end
@@ -33,6 +41,17 @@ class FolioTest < Minitest::Test
 		
 		assert_equal("Late (31-120 days)", late_loans[0]["loanStatus"])
 		assert_equal(35, late_loans.size)
+	end
+
+	def test_build_sell_payload
+		payload = JSON.parse(@folio.build_sell_payload)
+		notes = JSON.parse(payload["notes"])
+
+		assert_equal(2628791, payload["aid"])
+		assert_equal(Date.today + 3, Date.parse(payload["expireDate"]))
+		assert_equal(3, payload.count)
+		assert_equal(35, notes.count)
+		assert_equal(20288615, notes.first["loanId"])
 	end
 
 	def test_calculate_note_value
@@ -51,15 +70,18 @@ class FolioTest < Minitest::Test
 		assert_equal(0.28, note_value_120)
 	end
 
-
 	def test_build_sell_note_list
-		note_list = JSON.parse(@folio.build_sell_note_list)
-		assert_equal(35, note_list.size)
-		# puts note_list[0]
+		late_notes = @folio.filter_on_greater_than_30_days_late
+		late_notes.first["lastPaymentDate"] = (Date.today - 55).to_s
+
+		assert_equal(35, late_notes.size)
+
+		note_list = JSON.parse(@folio.build_sell_note_list(late_notes))
+
 		assert_equal(20288615, note_list.first["loanId"])
 		assert_equal(29091105, note_list.first["orderId"])
-		assert_equal(51684758, note_list.first["noteId"])
-		assert_equal("xyz", note_list[0]["askingPrice"], "askingPrice is incorrect")
+		assert_equal(51684758, note_list.first["noteId"])	
+		assert_equal(5.68, note_list.first["askingPrice"])
 	end
 
 	def test_caclulate_remaining_yield_to_maturity
@@ -70,14 +92,14 @@ class FolioTest < Minitest::Test
 	end
 
 	def test_calculate_days_delinquent
-		late_notes = @folio.filter_on_greater_than_30_days_late
-		late_notes.first["lastPaymentDate"] = (DateTime.now - 55).to_date.to_s
+		late_notes = @folio.filter_on_greater_than_30_days_late 
+		late_notes.first["lastPaymentDate"] = (Date.today - 55).to_date.to_s
 		assert_equal(24, @folio.calculate_days_delinquent(late_notes.first))
 	end
 
 	def test_get_asking_price
 		late_note = @folio.filter_on_greater_than_30_days_late.first
-		late_note["lastPaymentDate"] = (DateTime.now - 55).to_date.to_s
+		late_note["lastPaymentDate"] = (Date.today - 55).to_date.to_s
 		assert_equal(5.68, @folio.get_asking_price(late_note))
 	end
 
