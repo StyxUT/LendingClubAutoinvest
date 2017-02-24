@@ -19,7 +19,7 @@ configatron.configure_from_hash(
         content_type: 'application/json',
         port: '####',
         max_default_prob: 0.01,  # maximum acceptable probability of default.  Note:  0.01 is 1%
-            test_file: 'test_files/loanlist_example.json'
+        test_file: 'test_files/loanlist_example.json'
     },
     push_bullet:
     {
@@ -29,10 +29,15 @@ configatron.configure_from_hash(
     },
     logging:
     {
-        #path to store log files
+        #loan purchase
         order_response_log: '/var/log/lending_club_autoinvestor/lc_order_response.log',
         order_list_log: '/var/log/lending_club_autoinvestor/lc_order_list.log',
-        error_list_log: '/var/log/lending_club_autoinvestor/lc_error_list.log'
+        error_list_log: '/var/log/lending_club_autoinvestor/lc_error_list.log',
+
+        #folio
+        sell_order_response_log: '/var/log/lending_club_autoinvestor/lc_sell_order_response.log',
+        sell_order_list_log: '/var/log/lending_club_autoinvestor/lc_sell_order_list.log',
+        sell_error_list_log: '/var/log/lending_club_autoinvestor/lc_sell_error_list.log'
     },
     test_files:
     {
@@ -41,11 +46,17 @@ configatron.configure_from_hash(
         #purchase_response: 'test/test_files/failed_purchase_response.rb',
         available_loans: 'test/test_files/available_loans.json',
         owned_loans:  'test/test_files/owned_loans.json',
-        owned_loans_detail:  'test/test_files/owned_loans_detail.json'
+        owned_loans_detail:  'test/test_files/owned_loans_detail.json',
+
+        # to be created
+        folio_sell_order_response: 'test/test_files/folio_sell_order_response.json'
     },
     folio:
     {
-        base_url: 'https://api.lendingclub.com/api/investor/v1/accounts'
+        #https://api.lendingclub.com/api/investor/v1/accounts/<investor id>/trades/sell
+        base_url: 'https://api.lendingclub.com/api/investor',
+        api_version: 'v1',
+        content_type: 'application/json'
         # https://www.lendingclub.com/developers/detailed-notes-owned.action
     }
 )

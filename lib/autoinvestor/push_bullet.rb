@@ -1,8 +1,6 @@
 require 'washbullet' #PushBullet
 require 'rest-client'
 
-require_relative './configatron.rb'
-
 class PushBullet
 
 	def initialize
@@ -38,7 +36,7 @@ class PushBullet
 		success = false
 
 		if $verbose
-	 		puts "-- PushBullet Notification --"
+	 		puts "\n-- PushBullet Notification --"
 	 		puts view_notification
 	 	end
 
@@ -57,7 +55,7 @@ class PushBullet
 	end
 
 	def view_notification
-		notification = "Subject:\n#{subject}\nMessage:  #{message}"
+		notification = "\nSubject:\n#{subject}\nMessage:  #{message}"
 		puts notification
 		return notification
 	end
