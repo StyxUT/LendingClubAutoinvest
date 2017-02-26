@@ -31,6 +31,13 @@ class PushBullet
 		end
 	end
 
+	def set_folio_subject(subject_text)
+		@subject = subject_text
+		if $debug
+			@subject = "* DEBUG * " + subject
+		end
+	end
+
 	def send_message
 		add_line("Message sent at #{Time.now.strftime("%H:%M:%S %m/%d/%Y")}")
 		success = false

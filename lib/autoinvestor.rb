@@ -18,17 +18,17 @@ $debug = false
 $verbose = true
 
 
-# 2.times{
+1.times{
+	push_bullet = PushBullet.new
+	account = Account.new(push_bullet)
+	loans = Loans.new(account, push_bullet)
+  	loans.purchase_loans
+}
+
+# 1.times{
 # 	push_bullet = PushBullet.new
 # 	account = Account.new(push_bullet)
 # 	loans = Loans.new(account, push_bullet)
-
-# 	loans.purchase_loans
+# 	folio = Folio.new(account, loans, push_bullet)
+# 	folio.sell_delinquent_notes
 # }
-
-push_bullet = PushBullet.new
-account = Account.new(push_bullet)
-loans = Loans.new(account, push_bullet)
-folio = Folio.new(account, loans, push_bullet)
-
-folio.sell_delinquent_notes

@@ -11,11 +11,12 @@ class FolioTest < Minitest::Test
 	def setup
 		@orig_debug_status = $debug
 		$debug = true #causes test files to be used
+		$verbose = false
 
-		push_bullet = PushBullet.new
-		account = Account.new(push_bullet)
-		loans = Loans.new(account, push_bullet)
-		@folio = Folio.new(account, loans, push_bullet)
+		@push_bullet = PushBullet.new
+		account = Account.new(@push_bullet)
+		loans = Loans.new(account, @push_bullet)
+		@folio = Folio.new(account, loans, @push_bullet)
 	end	  
 
 	def teardown
@@ -32,6 +33,26 @@ class FolioTest < Minitest::Test
 
 	def test_is_instance_of_folio
 		assert_instance_of(Folio, @folio)
+	end
+
+	def test_report_folio_sell_order_response_errored
+		errored_response = File.read(File.expand_path('../../' + configatron.test_files.errored_folio_sell_order_response, __FILE__))
+		@folio.report_folio_sell_order_response(errored_response)
+		
+		assert_equal(0, @folio.success_count)
+		assert_equal(21, @folio.cannot_sell_count)
+		assert_equal(3, @folio.pending_bankruptcy_count)
+		assert_equal(2, @folio.payment_processing_count)
+	end
+
+	def test_report_folio_sell_order_response_success
+		success_response = File.read(File.expand_path('../../' + configatron.test_files.folio_sell_order_response, __FILE__))
+		@folio.report_folio_sell_order_response(success_response)
+		
+		assert_equal(27, @folio.success_count)
+		assert_equal(0, @folio.cannot_sell_count)
+		assert_equal(3, @folio.pending_bankruptcy_count)
+		assert_equal(2, @folio.payment_processing_count)
 	end
 
 	def test_filter_on_greater_than_30_days_late

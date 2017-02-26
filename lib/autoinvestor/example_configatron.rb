@@ -48,8 +48,8 @@ configatron.configure_from_hash(
         owned_loans:  'test/test_files/owned_loans.json',
         owned_loans_detail:  'test/test_files/owned_loans_detail.json',
 
-        # to be created
-        folio_sell_order_response: 'test/test_files/folio_sell_order_response.json'
+        folio_sell_order_response: 'test/test_files/folio_sell_order_response.json',
+        errored_folio_sell_order_response: 'test/test_files/errored_folio_sell_order_response.json'
     },
     folio:
     {

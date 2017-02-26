@@ -98,10 +98,10 @@ Folio:
     ☐ Configatron setting to set discount value (currnetly hardcoded to 10%)
     ✔ Review owned loans for sale @done (17-02-18 18:59)
     ☐ Update PushBullet message within report_folio_order_response
-      ☐ it reports successful sell order to PushBullet
-      ☐ it reports on failed sell order to PushBullet
-      ☐ it reports n of x attempts were successful
-    ☐ Log activity 
+      ✔ it reports successful sell order to PushBullet @done (17-02-25 16:38)
+      ✔ it reports on failed sell order to PushBullet @done (17-02-25 16:38)
+      ✔ it reports n of x attempts were successful @done (17-02-25 16:38)
+    ✔ Log activity @done (17-02-25 16:38)
       ✔ Test logging @done (17-02-24 00:21)
         ✔ it logs sell order response to log file @done (17-02-24 00:21)
         ✔ it logs sell order list @done (17-02-24 00:21)

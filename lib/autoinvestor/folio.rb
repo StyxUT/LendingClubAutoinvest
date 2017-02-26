@@ -14,6 +14,30 @@ class Folio
 		end
 	end
 
+	def status
+		@status
+	end
+
+	def success_count
+		@success_count
+	end
+
+	def cannot_sell_count
+		@cannot_sell_count
+	end
+
+	def pending_bankruptcy_count
+		@pending_bankruptcy_count
+	end
+
+	def payment_processing_count
+		@payment_processing_count
+	end
+
+	def payload_count
+		@payload_count
+	end
+
 	def post_notes_to_folio
 		payload = build_sell_payload
 		method_url = "#{configatron.lending_club.base_url}/#{configatron.lending_club.api_version}/accounts/#{configatron.lending_club.account}/trades/sell"
@@ -52,69 +76,45 @@ class Folio
 
 	def report_folio_sell_order_response(response)
 		unless response.nil?
-				response = JSON.parse(response)
 			begin
 				File.open(File.expand_path(configatron.logging.sell_order_response_log), 'a') { |file| file.write("\n\n#{Time.now.strftime("%H:%M:%S %m/%d/%Y")}\n#{response}\n\n") }
-				
-				# invested = response.values[1].select { |o| o["executionStatus"].include? 'ORDER_FULFILLED' }
-				# not_in_funding = response.values[1].select { |o| o["executionStatus"].include? 'NOT_AN_IN_FUNDING_LOAN' }
+				response = JSON.parse(response)
 
-				# @pb.set_subject("#{invested.size.to_i} of #{purchasable_loan_count}/#{[fundable_loan_count.to_i, filtered_loan_list_count].max}")
-				# @pb.add_line("Successfully Invested:  #{invested.inject(0) { |sum, o| sum + o["investedAmount"].to_f }}") # dollar amount invested
-				# if not_in_funding.any?
-				# 	@pb.add_line("No longer in funding:  #{not_in_funding.size}") # NOT_AN_IN_FUNDING_LOAN
-				# end
+				@status = response['sellNoteStatus']
+				@success_count = response['sellNoteConfirmations'].count { |k| k['executionStatus'][0] == 'SUCCESS_LISTING_FOR_SALE'}
+				@cannot_sell_count = response['sellNoteConfirmations'].count { |k| k['executionStatus'][0] == 'CANNOT_SELL_NOTES'}
+				@pending_bankruptcy_count = response['sellNoteConfirmations'].count { |k| k['executionStatus'][0] == 'PENDING_BANKRUPTCY'}
+				@payment_processing_count = response['sellNoteConfirmations'].count { |k| k['executionStatus'][0] == 'CANNOT_SELL_NOTE_IN_PAYMENT_PROCESSING'}
 
-				#See this URL for response example: https://www.lendingclub.com/foliofn/APIDocumentationSell.action
-
-				    # {
-				    #     sellNoteStatus: "SUCCESS"
-				    #     sellNoteConfirmations: [2]
-				        
-				    #     0: {
-				    #         loanId: 1238176
-				    #         noteId: 10177006
-				    #         askingPrice: 4.66
-				    #         executionStatus: [1]
-				    #         0: "SUCCESS_LISTING_FOR_SALE"
-				    #     }
-				        
-				    #     1: {
-				    #         loanId: 1178925
-				    #         noteId: 9351290
-				    #         askingPrice: 3
-				    #         executionStatus: [1]
-				    #         0: "SUCCESS_LISTING_FOR_SALE"
-				    #     }
-				    # }
-
-				# if not_in_funding.any?
-				# 	@pb.add_line("No longer in funding:  #{not_in_funding.size}") # NOT_AN_IN_FUNDING_LOAN
-				# end
+				@pb.set_folio_subject("Folio Sell Order - #{status} - #{success_count} of #{payload_count}")
+				@pb.add_line "Success Count: #{success_count}"
+				@pb.add_line "Cannot Sell Count: #{cannot_sell_count}"
+				@pb.add_line "Pending Bankruptcy Count: #{pending_bankruptcy_count}"
+				@pb.add_line "Payment Processing Count: #{payment_processing_count}"	
 			rescue => e
 				@pb.add_line("Failure in: #{__method__}\nUnable to report on folio sell order response.")
 				File.open(File.expand_path(configatron.logging.sell_error_list_log), 'a') { |file| file.write("\n\n#{Time.now.strftime("%H:%M:%S %m/%d/%Y")}\nError while trying to report on Folio sale order response.\nError Message:  #{e.message}\nError Backtrace:  #{e.backtrace}") }
 			end
 		else
-			@pb.set_subject "Folio order failed, response is nil.  Folio subject update needed."
+			@pb.set_folio_subject('Folio order failed - order response is nil.')
 		end
 	end
 
 	def filter_on_greater_than_30_days_late
 		if $verbose
 			puts "Filtering on greater than 30 days late."
-			puts "filter_on_greater_than_30_days_late.owned_loan_list.count (before 30 days late filter): #{@loans.owned_loans_list.count}"
+			puts "filter_on_greater_than_30_days_late.owned_loan_list.count (before > 30 days late & eligible filter): #{@loans.owned_loans_list.count}"
 		end
 		unless @loans.owned_loans_list.size == 0
-			late_loans = @loans.owned_loans_list.values[0].select do 
+			eligible_late_loans = @loans.owned_loans_list.values[0].select do 
 				|k, v| k["loanStatus"] == "Late (31-120 days)" && 
 				k["canBeTraded"] == TRUE # limit to loans that can be traded
 			end
 			if $verbose
-				puts "filter_on_greater_than_30_days_late.late_loans.size (after 30 days late filter): #{late_loans.size}"
+				puts "filter_on_greater_than_30_days_late.eligible_late_loans.size (after > 30 days late & eligible filter): #{eligible_late_loans.size}"
 			end
 		end
-		return late_loans
+		return eligible_late_loans
 	end
 
 	def build_sell_payload		
@@ -133,9 +133,11 @@ class Folio
 			 	:askingPrice => get_asking_price(n)
 			 ]
 		end 			
+		@payload_count = note_array.count
 
 		if $verbose
-			puts "build_sell_payload.note_array: #{note_array}"
+			# puts "build_sell_payload.note_array: #{note_array}"
+			puts "build_sell_payload.note_array.count: #{note_array.count}"
 		end
 
 		return note_array

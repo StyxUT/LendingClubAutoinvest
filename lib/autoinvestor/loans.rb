@@ -15,15 +15,15 @@ class Loans
 		owned_loans_list
 
 
-		# if check_for_release
+		if check_for_release
 			if default_predictions.nil?
 				terminate_early
 			else
 			 	apply_filtering_criteria
 			 	place_order(build_order_list)
 			end
-		# end
-
+		end
+		puts "got here........................."
 		if configatron.push_bullet.enabled 
 			@pb.send_message # send PushBullet message
 		end
@@ -320,9 +320,7 @@ class Loans
 			  	begin
 
 #              	!!!!!!!!!!!!!!!!!!
-# 				
-#				This section is disabled to prevent acutally purchasing loans while developing
-#    			
+#				This section is disabled to prevent acutally purchasing loans while developing 			
 #  				!!!!!!!!!!!!!!!!
 
 				  	# response = RestClient.post(method_url, order_list.to_json,
@@ -348,7 +346,7 @@ class Loans
 		unless response.nil?
 				response = JSON.parse(response)
 			begin
-				File.open(File.expand_path(configatron.logging.order_response_log), 'a') { |file| file.write("#{Time.now.strftime("%H:%M:%S %d/%m/%Y")}\n#{response}\n\n") }
+				File.open(File.expand_path(configatron.logging.order_response_log), 'a') { |file| file.write("#{Time.now.strftime("%H:%M:%S %m/%d/%Y")}\n#{response}\n\n") }
 				invested = response.values[1].select { |o| o["executionStatus"].include? 'ORDER_FULFILLED' }
 				not_in_funding = response.values[1].select { |o| o["executionStatus"].include? 'NOT_AN_IN_FUNDING_LOAN' }
 				@pb.set_subject("#{invested.size.to_i} of #{purchasable_loan_count}/#{[fundable_loan_count.to_i, filtered_loan_list_count].max}")
@@ -374,7 +372,7 @@ class Loans
 	end
 
 	def write_to_log(log_file, log_message)
-		File.open(File.expand_path(log_file), 'a') { |file| file.write("#{Time.now.strftime("%H:%M:%S %d/%m/%Y")}\n#{log_message}\n\n")}
+		File.open(File.expand_path(log_file), 'a') { |file| file.write("#{Time.now.strftime("%H:%M:%S %m/%d/%Y")}\n#{log_message}\n\n")}
 	end
 
 end
