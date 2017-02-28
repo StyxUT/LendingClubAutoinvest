@@ -14,7 +14,7 @@ require 'json'
 
 #require 'byebug'
 
-$debug = false 
+$debug = true 
 $verbose = true
 
 

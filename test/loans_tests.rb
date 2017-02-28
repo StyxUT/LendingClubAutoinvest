@@ -11,7 +11,7 @@ class LoansTest < Minitest::Test
 
 	def setup
 		orig_debug_status = $debug
-
+		$debug = true
 		push_bullet = PushBullet.new
 		account = Account.new(push_bullet)
 		
@@ -20,6 +20,20 @@ class LoansTest < Minitest::Test
 
 	def teardown
 		$debug = @orig_debug_status
+	end
+
+	def test_purchase_loans
+		skip "Needs tests..."
+		@loans.purchase_loans	
+	end
+
+	def test_check_for_release
+		configatron.lending_club.max_checks = 2
+		assert_equal(false, @loans.check_for_release)
+	end
+
+	def test_get_default_predictions
+		@loans.get_default_predictions
 	end
 
 	def test_get_owned_loans_list_is_rest_response

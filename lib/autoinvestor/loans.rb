@@ -14,7 +14,6 @@ class Loans
 		@account.available_cash
 		owned_loans_list
 
-
 		if check_for_release
 			if default_predictions.nil?
 				terminate_early

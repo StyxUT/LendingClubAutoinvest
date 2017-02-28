@@ -68,7 +68,7 @@ AutoInvestor:
        decided to use Rake to run tests @done (16-11-22 16:34)
      ✔ Test Account class @done (16-11-22 18:29)
      ✔ Test Push Bullet class @done (16-11-28 18:40)
-     ☐ Test Loans class
+     ☐ Create tests for Loans class
        ✔ assert get_owned_loans returns loans @done (16-11-28 22:42)
        ✔ assert get_owned_loans is a RestClient respons @done (16-11-28 22:42)
        ✔ assert owned_loans_list is a hash @done (16-11-28 22:42)
@@ -78,6 +78,8 @@ AutoInvestor:
          ☐ make proper JSON file (if necessary)
        ☐ Verify that available_loans.json test file still works after restructure
          ☐ make proper JSON file (if necessary)
+
+
  ☐ Improve order response messaging @low
     Currently only supports successful purchases, and no longer in funding
  ☐ Add conditional investment options bassed on account factors @feature @low
