@@ -118,7 +118,7 @@ class Folio
 	end
 
 	def build_sell_payload		
-		sell_hash = {:aid => configatron.lending_club.account, :expireDate => (Date.today+3).strftime("%m/%d/%Y"), :notes => build_sell_note_list(filter_on_greater_than_30_days_late)}
+		sell_hash = {:aid => configatron.lending_club.account, :expireDate => (Date.today+configatron.folio.expire_days).strftime("%m/%d/%Y"), :notes => build_sell_note_list(filter_on_greater_than_30_days_late)}
 		return sell_hash.to_json
 	end
 
@@ -156,9 +156,14 @@ class Folio
 	end
 
 	def calculate_days_delinquent(note)
-		#add a month to last payment date to use as the start of the delinqueny
-		date_diff = Date.today - (Date.parse(note["lastPaymentDate"]) >> 1)
-		return date_diff.to_i
+		if note["lastPaymentDate"] == nil
+			# A payment has never been made.  Use one month after issueDate as the start of delinquency.
+			date_diff = Date.today - (Date.parse(note["issueDate"]) >> 1)
+		else
+			#add a month to last payment date to use as the start of the delinqueny'
+			date_diff = Date.today - (Date.parse(note["lastPaymentDate"]) >> 1)
+		end
+		 return date_diff.to_i
 	end
 
 	def calculate_note_value(remaining_yield_to_maturity, days_delinquent)
