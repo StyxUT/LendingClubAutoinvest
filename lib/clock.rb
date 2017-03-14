@@ -13,6 +13,6 @@ module Clockwork
 end
 
 #LeningClub releases new loans one minute after these times (MT) each day
-Clockwork.every(1.days, 'autoinvestor.rb', :at => ['6:59', '10:59', '14:59', '18:59']){
+Clockwork.every(1.days, './autoinvestor.rb', :at => ['6:59', '10:59', '14:59', '18:59']){
 	# specialized code here
 }

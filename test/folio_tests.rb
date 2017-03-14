@@ -70,7 +70,7 @@ class FolioTest < Minitest::Test
 		notes = payload['notes']
 
 		assert_equal(2628791, payload["aid"])
-		assert_equal((Date.today + 3).strftime("%m/%d/%Y"), payload["expireDate"])
+		assert_equal((Date.today + configatron.folio.expire_days).strftime("%m/%d/%Y"), payload["expireDate"]) #test correct expire date
 		assert_equal(3, payload.count)
 		assert_equal(29, notes.count)
 		assert_equal(20288615, notes.first["loanId"])
@@ -125,8 +125,13 @@ class FolioTest < Minitest::Test
 
 	def test_get_asking_price
 		late_note = @folio.filter_on_greater_than_30_days_late.first
-		late_note["lastPaymentDate"] = (Date.today - 55).to_date.to_s
+		late_note["lastPaymentDate"] = (Date.today << 2).to_date.to_s
 		assert_equal(5.16, @folio.get_asking_price(late_note))
+
+		#test when lastPaymentDate is nil
+		late_note["issueDate"] = (Date.today << 3).to_date.to_s
+		late_note["lastPaymentDate"] = nil
+		assert_equal(3.15, @folio.get_asking_price(late_note)) 
 	end
 
 end

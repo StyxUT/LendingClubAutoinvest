@@ -56,7 +56,8 @@ configatron.configure_from_hash(
         #https://api.lendingclub.com/api/investor/v1/accounts/<investor id>/trades/sell
         base_url: 'https://api.lendingclub.com/api/investor',
         api_version: 'v1',
-        content_type: 'application/json'
-        # https://www.lendingclub.com/developers/detailed-notes-owned.action
+        content_type: 'application/json',
+
+        expire_days: 1
     }
 )

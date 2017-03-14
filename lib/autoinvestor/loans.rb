@@ -22,7 +22,6 @@ class Loans
 			 	place_order(build_order_list)
 			end
 		end
-		puts "got here........................."
 		if configatron.push_bullet.enabled 
 			@pb.send_message # send PushBullet message
 		end
@@ -317,17 +316,11 @@ class Loans
 		else
 			unless order_list.nil?
 			  	begin
-
-#              	!!!!!!!!!!!!!!!!!!
-#				This section is disabled to prevent acutally purchasing loans while developing 			
-#  				!!!!!!!!!!!!!!!!
-
-				  	# response = RestClient.post(method_url, order_list.to_json,
-				  	#  	"Authorization" => configatron.lending_club.authorization,
-				  	#  	"Accept" => configatron.lending_club.content_type,
-				  	#  	"Content-Type" => configatron.lending_club.content_type
-				  	#  	)
-
+				  	response = RestClient.post(method_url, order_list.to_json,
+				  	 	"Authorization" => configatron.lending_club.authorization,
+				  	 	"Accept" => configatron.lending_club.content_type,
+				  	 	"Content-Type" => configatron.lending_club.content_type
+				  	 	)
 					if $verbose
 						puts "Order Response:  #{response}"
 					end

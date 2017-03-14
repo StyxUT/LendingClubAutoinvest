@@ -8,7 +8,6 @@ class Folio
 
 	def sell_delinquent_notes
 		post_notes_to_folio
-
 		if configatron.push_bullet.enabled 
 			@pb.send_message # send PushBullet message
 		end

@@ -10,7 +10,7 @@ require_relative '../lib/autoinvestor/configatron.rb'
 class LoansTest < Minitest::Test
 
 	def setup
-		orig_debug_status = $debug
+		@orig_debug_status = $debug
 		$debug = true
 		push_bullet = PushBullet.new
 		account = Account.new(push_bullet)
@@ -37,7 +37,8 @@ class LoansTest < Minitest::Test
 	end
 
 	def test_get_owned_loans_list_is_rest_response
-		assert_kind_of(RestClient::Response, @loans.get_owned_loans_list)
+		$verbose = false
+		assert_kind_of(Hash, @loans.owned_loans_list)
 	end
 
 	def test_owned_loans_list_is_hash

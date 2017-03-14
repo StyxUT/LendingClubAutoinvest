@@ -14,21 +14,16 @@ require 'json'
 
 #require 'byebug'
 
-$debug = true 
-$verbose = true
+$debug = false 
+$verbose = false
 
 
-1.times{
-	push_bullet = PushBullet.new
-	account = Account.new(push_bullet)
-	loans = Loans.new(account, push_bullet)
-  	loans.purchase_loans
-}
+#attempt to purchase desireable notes
+push_bullet = PushBullet.new
+account = Account.new(push_bullet)
+loans = Loans.new(account, push_bullet)
+loans.purchase_loans
 
-# 1.times{
-# 	push_bullet = PushBullet.new
-# 	account = Account.new(push_bullet)
-# 	loans = Loans.new(account, push_bullet)
-# 	folio = Folio.new(account, loans, push_bullet)
-# 	folio.sell_delinquent_notes
-# }
+#attempt post delinquent notes to folio
+folio = Folio.new(account, loans, push_bullet)
+folio.sell_delinquent_notes
