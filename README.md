@@ -9,7 +9,7 @@
 3.  Change to the LendingClubAutoinvest project folder and install bundler gem `gem install bundler`
 4.  Install required gems `bundle install`
 5.  Customize the values in example_configatron.rb then rename to configatron.rb
-6.  **Optionally** for scheduled execution install clockwork gem `gem install clockwork`
+6.  **Optionally** for scheduled execution install clockworkd gem `gem install clockworkd`
 
 ## Execution
   ### Manual Execution
@@ -18,7 +18,7 @@
     bunle exec ./lib/autoinvestor.rb
     
   ### Scheduled Execution
-  Schedule execution using clockwork gem E.g.:
+  Schedule execution using clockworkd gem E.g.:
 
     bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/lib/clock.rb
 
