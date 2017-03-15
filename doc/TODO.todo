@@ -51,8 +51,8 @@ GitHub:
       ☐ update paths for "restructure" branch
         ###############################
         #   clockworkd Start/Stop (from project's root directory)
-        #    to start: $ bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/clock.rb
-        #    to stop: $ bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/clock.rb
+        #    to start: $ bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/lib/clock.rb
+        #    to stop: $ bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/lib/clock.rb
         ###############################
 
 Refactoring:
