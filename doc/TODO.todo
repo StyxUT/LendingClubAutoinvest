@@ -13,55 +13,33 @@ How to use PlainTask
 
 GitHub: 
  ☐ Consider making project private
- ☐ Add GitHub readme
-   ☐ Add Purpose
+ ✔ Add GitHub readme @done (17-03-14 18:02)
+   ✔ Add Purpose @done (17-03-14 18:02)
         ###############################
         #    Notes:
         #    It's intended for this script to be scheduled to run about one minute prior to the time LendingClub releases new loans. 
         #    Currently LendingClub releases new loans at 7 AM, 11 AM, 3 PM and 7 PM (MST) each day.
-        #    This is ideally handled by the clock.rb/clockworkd/colckworker.sh setup 
         ###############################
-   ☐ Add Setup instructions
-        ###############################
-        # Add instructons for using clock.rb with /etc/init.d/clockworker.sh
-        # Add instruction for using clockworkd and clockwork
-        # (recomend using foreman/upstart)
-        ###############################
-   ☐ Add install and run instructions 
+   ✔ Add install and run instructions @done (17-03-14 18:02)
         ###############################
         #  Install Instructions:
         #   Update values in example_configatron.rb then rename file to configatron.rb
-        #    Rotate logs using logrotate
-        #    brew install logrotate (OS X only)
-        #    mkdir /var/log/lending_club_autoinvestor/
-        #       ensure executing process has write access to directory
-        #        sudo chown -R <user_name> /var/log/lending_club_autoinvestor/
-        #    add below to "/etc/logrotate.d/lending_club_autoinvestor" file:
-        #      /var/log/lending_club_autoinvestor/*.log {
-        #            weekly
-        #            missingok
-        #            rotate 7
-        #            compress
-        #            notifempty
-        #        nocreate
-        #      }
-        #    modify configuration as needed (man logrotate)
         ###############################
-    ☐ clockworkd start/stop
-      ☐ update paths for "restructure" branch
+    ✔ clockworkd start/stop @done (17-03-14 16:20)
+      ✔ update paths for "restructure" branch @done (17-03-14 16:20)
         ###############################
         #   clockworkd Start/Stop (from project's root directory)
         #    to start: $ bundle exec clockworkd start --log -c ~/projects/LendingClubAutoinvest/lib/clock.rb
         #    to stop: $ bundle exec clockworkd stop --log -c ~/projects/LendingClubAutoinvest/lib/clock.rb
         ###############################
 
-Refactoring:
-  ☐ Replace washbullet with json-rest to have better controll over resturn result @PushBullet
+PushBullet:
+  ☐ Consider replacing washbullet with json-rest to have better controll over resturn result
     Push AIP URL:  https://docs.pushbullet.com/#create-push
     ☐ refactor test and enable
     ☐ test_send_message_can_fail
 
-AutoInvestor:
+Loans:
  ☐ Implement Unit Tests @high
    ✔ decide on testing framework  @done (16-11-22 02:45)
      # minitest:  tutorial url: https://launchschool.com/blog/assert-yourself-an-introduction-to-minitest
@@ -78,8 +56,6 @@ AutoInvestor:
          ☐ make proper JSON file (if necessary)
        ☐ Verify that available_loans.json test file still works after restructure
          ☐ make proper JSON file (if necessary)
-
-
  ☐ Improve order response messaging @low
     Currently only supports successful purchases, and no longer in funding
  ☐ Add conditional investment options bassed on account factors @feature @low
@@ -95,8 +71,7 @@ AutoInvestor:
 Folio:
   #Folio API URL: https://www.lendingclub.com/foliofn/
   #folio sell action: https://www.lendingclub.com/foliofn/APIDocumentationSell.action
-  ☐ Sell loans on Folio via Folio's API @critical
-    ☐ Configatron setting to set discount value (currnetly hardcoded to 10%)
+  ✔ Sell loans on Folio via Folio's API @critical @done (17-03-14 18:03)
     ✔ Review owned loans for sale @done (17-02-18 18:59)
     ✔ Update PushBullet message within report_folio_order_response @done (17-03-14 14:38)
       ✔ it reports successful sell order to PushBullet @done (17-02-25 16:38)
@@ -106,24 +81,25 @@ Folio:
       ✔ Test logging @done (17-02-24 00:21)
         ✔ it logs sell order response to log file @done (17-02-24 00:21)
         ✔ it logs sell order list @done (17-02-24 00:21)
-    ☐ Schedule to reprice daily
-    ☐ Other Testing of Folio class
-      ✔ assert late_loans contains the correct number of late loans after filter @done (16-11-28 22:31)
-      ✔ it properly determines note price @done (17-02-18 18:58)
-      ✔ it creates a proper sell order @done (17-02-18 18:58)
-      ☐ implement test_post_notes_to_folio test(s)
-      ☐ implement test_sell_delinquent_note test(s)
-    ✔ Determine note price @done (17-02-18 18:59)
-      ✔ Calculation:  @done (17-02-23 21:23)
-        #days delinquent: lastPaymentDate - current date
-        #days delinquent, YTM; defaut rate - 10%
-      ☐ Evaluate based on other notes from given loan
-        #is this possible?
-      ✔ Evaluate based on default probability formula @done (17-02-18 19:32)
-        ✔ get this from the spreadsheet @done (17-02-18 19:32)
+    ✔ Schedule to reprice daily @done (17-03-14 16:20)
+  ☐ Testing of Folio class
+    ✔ assert late_loans contains the correct number of late loans after filter @done (16-11-28 22:31)
+    ✔ it properly determines note price @done (17-02-18 18:58)
+    ✔ it creates a proper sell order @done (17-02-18 18:58)
+    ☐ implement test_post_notes_to_folio test(s)
+    ☐ implement test_sell_delinquent_note test(s)
+  ✔ Determine note price @done (17-02-18 18:59)
+    ✔ Calculation:  @done (17-02-23 21:23)
+      #days delinquent: lastPaymentDate - current date
+      #days delinquent, YTM; defaut rate - 10%
+      #is this possible?
+    ✔ Evaluate based on default probability formula @done (17-02-18 19:32)
+      ✔ get this from the spreadsheet @done (17-02-18 19:32)
+  ☐ Configatron setting to set discount value (currnetly hardcoded to 10%) @feature
+  ☐ Evaluate based on other notes from given loan @low @feature
 
 
-Default Predictor Refactor:
+Default Predictor:
  ☐ Fully implement Default Predictor
    ☐ Refactor default predictor into own class
    ☐ Ensure service is running by calling get/version API call

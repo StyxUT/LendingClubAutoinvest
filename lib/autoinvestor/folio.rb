@@ -102,7 +102,6 @@ class Folio
 	def filter_on_greater_than_30_days_late
 		if $verbose
 			puts "Filtering on greater than 30 days late."
-			puts "filter_on_greater_than_30_days_late.owned_loan_list.count (before > 30 days late & eligible filter): #{@loans.owned_loans_list.count}"
 		end
 		unless @loans.owned_loans_list.size == 0
 			eligible_late_loans = @loans.owned_loans_list.values[0].select do 

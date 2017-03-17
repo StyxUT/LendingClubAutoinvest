@@ -52,7 +52,7 @@ class PushBullet
 			success = true
 		rescue
 			puts "Failure in: #{__method__}\nUnable to send the following PushBullet note:\n"
-			puts view_notification7
+			view_notification
 		ensure
 			@message = nil
 			@subject = nil
@@ -63,7 +63,7 @@ class PushBullet
 
 	def view_notification
 		notification = "\nSubject:\n#{subject}\nMessage:  #{message}"
-		puts notification
+		# puts notification
 		return notification
 	end
 
