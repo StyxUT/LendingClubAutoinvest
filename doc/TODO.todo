@@ -56,6 +56,7 @@ Loans:
          ☐ make proper JSON file (if necessary)
        ☐ Verify that available_loans.json test file still works after restructure
          ☐ make proper JSON file (if necessary)
+       ☐ Test filter_on_default_probability function
  ☐ Improve order response messaging @low
     Currently only supports successful purchases, and no longer in funding
  ☐ Add conditional investment options bassed on account factors @feature @low
@@ -106,5 +107,5 @@ Default Predictor:
      ☐ If it isn't running connect and start the service
        ☐ Possibly use start_predictor script
  ☐ Use HTTPS for API call
-   ☐ Obtain certificat
+   ☐ Obtain certificate
    ☐ Update nginx configuration

@@ -19,7 +19,7 @@ class Loans
 				terminate_early
 			else
 			 	apply_filtering_criteria
-			 	place_order(build_order_list)
+			 	# place_order(build_order_list)
 			end
 		# end
 		if configatron.push_bullet.enabled 
@@ -63,14 +63,18 @@ class Loans
 		begin
 			return filtered_loan_list.values[1].size
 		rescue
-			return 0
+			begin
+				return filtered_loan_list.size #after conversion to array
+			rescue
+				return 0
+			end
 		end
 	end
 	
 	def owned_loans_list
 		@owned_loans_list ||= JSON.parse(get_owned_loans_list)
 		if $verbose
-			#puts "@owned_loans_list: #{@owned_loans_list}"
+			# puts "@owned_loans_list: #{@owned_loans_list}"
 		end
 		@owned_loans_list # make @owned_loans_list the return value
 	end
@@ -78,7 +82,7 @@ class Loans
 	def default_predictions
 		@default_predictions ||= get_default_predictions
 		if $verbose
-			# puts "@default_predictions: #{@default_predictions}"
+			puts "@default_predictions: #{@default_predictions}"
 		end
 		@default_predictions # make @default_predictions the return value
 	end
@@ -92,7 +96,7 @@ class Loans
 	end
 
 	def purchasable_loan_count
-		@purchasable_loan_count ||= [fundable_loan_count, filtered_loan_list_count].min
+		@purchasable_loan_count ||= [fundable_loan_count, filtered_loan_list.size].min
 		if $verbose
 			puts "@purchasable_loan_count: #{@purchasable_loan_count}"
 		end
@@ -152,18 +156,22 @@ class Loans
 			puts "filter_on_default_probability. (before default filter): #{filtered_loan_list_count}"
 		end
 		unless default_predictions.nil?
-			default_probabilities = JSON.parse(default_predictions)
-			probabilities = JSON.parse(default_probabilities.values[0])
-
 			#add members to delete_list array where default probability is more than X.XX.  These will be filtered out.
 			delete_list = []
-			probabilities.select {|o| 
+			default_predictions.select {|o| 
 			 	o["defaultProb"].to_f > configatron.default_predictor.max_default_prob # if greater, add to delete list
 			 }.each {|k,v| delete_list << k["memberId"]}
 			
 			delete_list.each {|i| @filtered_loan_list.values[1].delete_if {|k,v| k["memberId"] == i.to_i}}
+
+			report_post_default_filter_interst_rates(@filtered_loan_list)
 			puts "filter_on_default_probability.filtered_loan_list_count (after default filter): #{filtered_loan_list_count}"
 		end
+	end
+
+	def report_post_default_filter_interst_rates(filtered_loan_list)
+		@pb.add_line "Post-default filter interest rates:"
+		filtered_loan_list.values[1].each {|k| @pb.add_line k['intRate']}
 	end
 
 	def get_default_predictions
@@ -191,8 +199,6 @@ class Loans
 				  		"Accept" => configatron.default_predictor.content_type,
 				  		"Content-Type" => configatron.default_predictor.content_type
 				 	)
-				
-				puts "get_default_predictions.response: #{response}"
 			rescue
 				error_message = "Failure in: #{__method__}\nUnable to obtain default predictions.  The default predictor service may not be running at #{configatron.default_predictor.base_url}:#{configatron.default_predictor.port}"
 				@pb.add_line(error_message)
@@ -202,6 +208,8 @@ class Loans
 		end
 		#make a valid JSON document so the response can be parsed to a HASH
 		json_doc = '{"predictions":' + response + '}'
+		default_probabilities = JSON.parse(json_doc)
+		probabilities = JSON.parse(default_probabilities.values[0])
 	end
 
 	def filter_on_additional_criteria
@@ -212,13 +220,13 @@ class Loans
 		unless filtered_loan_list_count == 0
 			# many of the below filter criteria have been disabled in favor of relying primarily the default probability determination
 			@filtered_loan_list = filtered_loan_list.values[1].select do |o|
-				o["term"].to_i == TERMS.months36 && 
+			 	o["term"].to_i == TERMS.months36 && 
 				# o["annualInc"].to_f / 12 > 3000 &&
 				# o["empLength"].to_i > 23 && #
 				# o["inqLast6Mths"].to_i <= 1 &&
 				# o["pubRec"].to_i == 0 &&
-				o["intRate"].to_f < 27.0 &&
-				o["intRate"].to_f > 16.0 
+			 	 #o["intRate"].to_f < 270.00 #&&
+			 	o["intRate"].to_f >= configatron.lending_club.min_int_rate 
 				# o["dti"].to_f <= 20.00 &&
 				# o["delinq2Yrs"].to_i < 4 &&
 				# ( 	# exclude loans where the monthly installment amount is more than 10% of the borrower's monthly income
@@ -241,7 +249,7 @@ class Loans
 			puts "Filter on owned loans."
 			puts "filter_on_owned_loans.filtered_loan_list_count (before owned loan removal): #{filtered_loan_list_count}"
 		end
-		unless filtered_loan_list_count == 0
+		unless filtered_loan_list.size == 0
 			# extract loanId's from a hash of already owned loans and remove those loans from the list of filtered loans
 			owned_loans_list.values[0].map {|o| o["loanId"]}.each { |i| @filtered_loan_list.delete_if {|key, value| key["id"] == i} }
 		end
@@ -274,7 +282,7 @@ class Loans
 	end
 	
 	def build_order_list
-		@pb.add_line("Placing an order for #{purchasable_loan_count} loans.")
+		@pb.add_line("Placing an order for #{filtered_loan_list_count} loans.")
 
 		if purchasable_loan_count > 0 && filtered_loan_list_count > 0
 			# sort the loans with the highest interest rate to the front  
@@ -357,7 +365,7 @@ class Loans
 		end
 	end
 
-	# if unable to get default predictions report then terminate early to prevent purchasing undesirable loans
+	# if unable to get default predictions report, then terminate early to prevent purchasing undesired loans
 	def terminate_early
 		@pb.set_subject "[!Early Termination!] 0"
 		@pb.add_line "Failed to obtain default predictions."
