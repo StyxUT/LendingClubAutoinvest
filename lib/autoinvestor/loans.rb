@@ -1,4 +1,5 @@
 require 'yinum'
+require_relative 'wol.rb'
 
 class Loans
 	TERMS = Enum.new(:TERMS, :months60 => 60, :months36 => 36)
@@ -7,6 +8,7 @@ class Loans
 	def initialize(account, push_bullet)
 		@account = account
 		@pb = push_bullet
+		@wol = WOL.new
 	end
 
 	def purchase_loans
@@ -14,14 +16,14 @@ class Loans
 		@account.available_cash
 		owned_loans_list
 
-		if check_for_release
+		# if check_for_release
 			if default_predictions.nil?
 				terminate_early
 			else
 			 	apply_filtering_criteria
 			 	place_order(build_order_list)
 			end
-		end
+		# end
 		if configatron.push_bullet.enabled 
 			@pb.send_message # send PushBullet message
 		end
@@ -175,6 +177,12 @@ class Loans
 	end
 
 	def get_default_predictions
+		
+		if configatron.wol.enabled
+			# attempt to wake default predictor in case it is sleeping
+			@wol.wake_default_predictor
+		end
+
 		method_url = "#{configatron.default_predictor.base_url}:#{configatron.default_predictor.port}/predict"
 		if $verbose
 			puts "Getting default predictions."
