@@ -29,3 +29,4 @@ txbytes = UDPSocket.open do |so|
 end
 if $verbose
 	puts "#{txbytes} bytes sent to #{host}:#{port}."
+end
