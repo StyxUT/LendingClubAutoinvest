@@ -12,10 +12,10 @@ class LoansTest < Minitest::Test
 	def setup
 		@orig_debug_status = $debug
 		$debug = true
-		push_bullet = PushBullet.new
-		account = Account.new(push_bullet)
+		@push_bullet = PushBullet.new
+		account = Account.new(@push_bullet)
 		
-		@loans = Loans.new(account, push_bullet)
+		@loans = Loans.new(account, @push_bullet)
 	end	  
 
 	def teardown
@@ -33,7 +33,7 @@ class LoansTest < Minitest::Test
 	end
 
 	def test_get_default_predictions
-		@loans.get_default_predictions
+		skip "@loans.get_default_predictions"
 	end
 
 	def test_get_owned_loans_list_is_rest_response
@@ -43,6 +43,28 @@ class LoansTest < Minitest::Test
 
 	def test_owned_loans_list_is_hash
 		assert_kind_of(Hash, @loans.owned_loans_list)
+	end
+
+	def test_filtered_loan_list_count
+		$verbose = false
+
+		@loans.filtered_loan_list
+		@loans.get_default_predictions
+		@loans.filter_on_default_probability
+		assert_equal(108, @loans.filtered_loan_list_count)
+
+		@loans.filter_on_additional_criteria
+		assert_equal(62, @loans.filtered_loan_list_count)
+	end
+
+	def test_report_post_default_filter_interst_rates
+		$verbose = false
+
+		@loans.filtered_loan_list
+		@loans.get_default_predictions
+		@loans.filter_on_default_probability
+		puts "Push Bullet message: #{@push_bullet.message}"
+		# assert_equal(108, @loans.filtered_loan_list_count)
 	end
 
 	def test_owned_loans_list

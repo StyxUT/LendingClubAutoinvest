@@ -14,14 +14,14 @@ class Loans
 		@account.available_cash
 		owned_loans_list
 
-		# if check_for_release
+		if check_for_release
 			if default_predictions.nil?
 				terminate_early
 			else
 			 	apply_filtering_criteria
-			 	# place_order(build_order_list)
+			 	place_order(build_order_list)
 			end
-		# end
+		end
 		if configatron.push_bullet.enabled 
 			@pb.send_message # send PushBullet message
 		end
@@ -238,6 +238,7 @@ class Loans
 				# 	o["purpose"].to_s == PURPOSES.consolidate
 				# )
 			end
+
 			if $verbose
 				puts "filter_on_additional_criteria.filtered_loan_list_count (after additional filter): #{filtered_loan_list_count}"  #filtered_loan_list is now an array
 			end

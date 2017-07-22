@@ -101,6 +101,7 @@ Folio:
 
 
 Default Predictor:
+ ✔ Implement WakeOnLan @critical @done (17-07-21 20:45)
  ☐ Fully implement Default Predictor
    ☐ Refactor default predictor into own class
    ☐ Ensure service is running by calling get/version API call

@@ -60,5 +60,10 @@ configatron.configure_from_hash(
         content_type: 'application/json',
 
         expire_days: 1
+    },
+    wol: #Wake On Lan 
+    { 
+        mac_address: 'XX:XX:XX:XX:XX:XX',    # hex numbers
+        host: '192.168.x.x'     #IP address
     }
 )
