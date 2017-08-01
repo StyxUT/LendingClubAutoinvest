@@ -101,10 +101,7 @@ Folio:
 
 
 Default Predictor:
- ☐ Implement WakeOnLan @critical
-   ☐ Create tests for WakeOnLan (wol.rb)
-   ☐ Check for install of wakeonlan
-   ☐ Determine best time to wake given that it can take a few seconds but computer falls asleep again after about 20 seconds; also loands are now always released on time.
+ ✔ Implement WakeOnLan @critical @done (17-08-01 17:10)
  ☐ Fully implement Default Predictor
    ☐ Refactor default predictor into own class
    ☐ Ensure service is running by calling get/version API call
