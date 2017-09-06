@@ -24,10 +24,10 @@ $verbose = true
 
 
 #attempt to purchase desireable notes
-push_bullet = PushBullet.new
-account = Account.new(push_bullet)
-loans = Loans.new(account, push_bullet)
-loans.purchase_loans
+#push_bullet = PushBullet.new
+#account = Account.new(push_bullet)
+#loans = Loans.new(account, push_bullet)
+#loans.purchase_loans
 
 #attempt post delinquent notes to folio
 # folio = Folio.new(account, loans, push_bullet)
