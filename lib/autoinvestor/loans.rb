@@ -16,14 +16,14 @@ class Loans
 		@account.available_cash
 		owned_loans_list
 
-		# if check_for_release
+		if check_for_release
 			if default_predictions.nil?
 				terminate_early
 			else
 			 	apply_filtering_criteria
 			 	place_order(build_order_list)
 			end
-		# end
+		end
 		if configatron.push_bullet.enabled 
 			@pb.send_message # send PushBullet message
 		end

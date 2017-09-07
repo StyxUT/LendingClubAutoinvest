@@ -17,7 +17,7 @@ class WOL #Wake On Lan
 
 	def report_result(result)
 		if result.to_i != 0
-			puts "wakeonlan did not execute successfully.  Verify it has been instlled."
+			puts "wakeonlan did not execute successfully.  Verify it has been installed."
 		end
 
 		result.to_i

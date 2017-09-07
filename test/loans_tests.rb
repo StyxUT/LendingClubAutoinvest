@@ -1,5 +1,6 @@
 require 'minitest/autorun'
 require 'rest-client'
+require 'byebug'
 
 require_relative '../lib/autoinvestor/account.rb'
 require_relative '../lib/autoinvestor/push_bullet.rb'
@@ -24,7 +25,6 @@ class LoansTest < Minitest::Test
 
 	def test_purchase_loans
 		skip "Needs tests..."
-		@loans.purchase_loans	
 	end
 
 	def test_check_for_release

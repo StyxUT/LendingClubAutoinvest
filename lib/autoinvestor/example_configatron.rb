@@ -20,7 +20,7 @@ configatron.configure_from_hash(
         content_type: 'application/json',
         port: '####',
         max_default_prob: 0.01,  # maximum acceptable probability of default.  Note:  0.01 is 1%
-        test_file: 'test_files/loanlist_example.json'
+        test_file: 'test/test_files/loanlist_example.json'
     },
     push_bullet:
     {

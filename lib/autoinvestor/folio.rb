@@ -106,7 +106,7 @@ class Folio
 		unless @loans.owned_loans_list.size == 0
 			eligible_late_loans = @loans.owned_loans_list.values[0].select do 
 				|k, v| k["loanStatus"] == "Late (31-120 days)" && 
-				k["canBeTraded"] == TRUE # limit to loans that can be traded
+				k["canBeTraded"] == true # limit to loans that can be traded
 			end
 			if $verbose
 				puts "filter_on_greater_than_30_days_late.eligible_late_loans.size (after > 30 days late & eligible filter): #{eligible_late_loans.size}"
