@@ -63,7 +63,7 @@ configatron.configure_from_hash(
     },
     wol: #Wake On Lan 
     { 
-        enabled: true, #true/false
+        enabled: false, #true/false
         mac_address: 'XX:XX:XX:XX:XX:XX',    # hex numbers
         host: '192.168.x.x'     #IP address -  Typically the broadcast IP rather than final destination IP  E.g. 192.168.1.255
     }
